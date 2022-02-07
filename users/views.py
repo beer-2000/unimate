@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from knox.models import AuthToken
-from users.serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer
+from users.serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer, ProfileDetailSerializer, ProfileSerializer
+from users.models import Profile
 
 # Create your views here.
 @api_view(['GET'])
@@ -16,7 +17,7 @@ class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
 
     def post(self, request, *args, **kwargs):
-        if len(request.data["username"]) < 6 or len(request.data["password"]) < 4:
+        if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
             body = {"message": "short field"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=request.data)
@@ -27,7 +28,7 @@ class RegistrationAPI(generics.GenericAPIView):
                 "user": UserSerializer(
                     user, context=self.get_serializer_context()
                 ).data,
-                "token": AuthToken.objects.create(user),
+                "token": AuthToken.objects.create(user)[1],
             }
         )
 
@@ -55,3 +56,14 @@ class UserAPI(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class ProfileUpdateAPI(generics.UpdateAPIView):
+    lookup_field = "user_pk"
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+
+class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileDetailSerializer
