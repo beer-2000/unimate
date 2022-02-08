@@ -59,11 +59,12 @@ class UserAPI(generics.RetrieveAPIView):
 
 
 class ProfileUpdateAPI(generics.UpdateAPIView):
-    lookup_field = "user_pk"
+    lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
 
 class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer

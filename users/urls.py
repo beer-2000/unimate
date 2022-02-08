@@ -7,6 +7,9 @@ urlpatterns = [
     path("auth/resister/", RegistrationAPI.as_view()),
     path("auth/login/", LoginAPI.as_view()),
     path("auth/user/", UserAPI.as_view()),
-    path("auth/profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
-    path("auth/profile/<int:pk>/detail/", ProfileDetailAPI.as_view()),
+    #user_pk : User 테이블의 pk인 'id' 참조
+    #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
+    #path("auth/profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
+    path("auth/profile/<int:user_id>/update/", ProfileUpdateAPI.as_view()),
+    path("auth/profile/<int:user_id>/detail/", ProfileDetailAPI.as_view()),
 ]

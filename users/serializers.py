@@ -41,10 +41,17 @@ class LoginUserSerializer(serializers.Serializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ("user_pk", "nickname", "phone", "email")
+        fields = ("nickname", "introducing",)
+#        fields = ("id", "user_id", "university_name", "college_name", "major_name", "school_email", "birth_of_date", "gender",
+#            "age", "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
+#            "mbti_first", "mbti_second", "mbti_third", "mbti_fourth", "withdrawn_status")
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ("user_pk", "email", "nickname", "point", "like", "phone")
+        fields = ("id", "user_id", "university_name", "college_name", "major_name", "school_email", "birth_of_date", "gender",
+            "age", "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
+            "mbti_first", "mbti_second", "mbti_third", "mbti_fourth", "withdrawn_status")
+
+
