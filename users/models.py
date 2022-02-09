@@ -12,12 +12,12 @@ from django.dispatch import receiver
 # IntegerField의 경우 null=True로 처리했고, Profile 생성 시  None 이 저장됨.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    university_name = models.CharField(max_length=200)
-    college_name = models.CharField(max_length=200)
-    major_name = models.CharField(max_length=200)
+    university_name = models.CharField(max_length=32)
+    college_name = models.CharField(max_length=32)
+    major_name = models.CharField(max_length=32)
     school_email = models.EmailField(max_length=254)
     birth_of_date = models.DateField(null=True)
-    gender = models.CharField(max_length=1)
+    gender = models.IntegerField(null=True)
     age = models.IntegerField(null=True)
     entrance_year = models.IntegerField(null=True)
     grade = models.IntegerField(null=True)
@@ -25,12 +25,12 @@ class Profile(models.Model):
     introducing = models.CharField(max_length=255, blank=True)
     school_auth_status = models.BooleanField(default=False)
     registration_date = models.DateField(auto_now_add=True)
-    mbti_first = models.CharField(max_length=1, blank=True)
-    mbti_second = models.CharField(max_length=1, blank=True)
-    mbti_third = models.CharField(max_length=1, blank=True)
-    mbti_fourth = models.CharField(max_length=1, blank=True)
-    #interest_list = 
+    mbti = models.CharField(max_length=4, blank=True)
+    interest_list = models.TextField(blank=True)
     withdrawn_status = models.CharField(max_length=1, default="N")
+
+    class Meta: #메타 클래스를 이용하여 테이블명 지정
+        db_table = 'profile'
 
 
 
