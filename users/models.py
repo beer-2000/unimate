@@ -1,3 +1,4 @@
+from tkinter import CASCADE
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -33,9 +34,6 @@ class Profile(models.Model):
         db_table = 'profile'
 
 
-
-
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     print(f"sender: {sender}, instance: {instance}, created: {created}")
@@ -46,3 +44,38 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+# class Room(models.Model):
+#     # user = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'user')
+#     room_type = models.IntegerField(max_length=1)
+#     title = models.CharField(max_length=64) #32자 이내
+#     grade_limit = models.IntegerField(max_length=1, null=True)
+#     heads_limit = models.IntegerField(max_length=1, null=True)
+#     gender_limit = models.IntegerField(max_length=1, null=True)
+#     meet_purpose = models.CharField(max_length=255, blank=True)
+#     room_description = models.CharField(max_length=255, blank=True)
+#     meet_status = models.CharField(max_length=1, blank=True)
+#     room_open = models.CharField(max_length=1, default="Y")
+#     common = models.TextField(blank=True)
+#     mbti = models.CharField(max_length=4, blank=True)
+#     interest = models.TextField(blank=True)
+    
+#     users = models.ManyToManyField(User, related_name='users')
+
+#     class Meta:
+#         db_table = 'room'
+
+# class UserRoom(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     room = models.ForeignKey(Room, on_delete=models.CASCADE)
+
+#     class Meta:
+#         db_table = 'user_room'
+
+
+# class Meet(models.Model):
+#     room_id = models.ForeignKey("Room", on_delete=CASCADE)
+
+#     class Meta:
+#         db_table = 'meet'
