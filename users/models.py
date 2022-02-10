@@ -46,6 +46,46 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
+class Room(models.Model):
+    owner = models.ManyToManyField(User, through='RoomUser')
+    created_at = models.DateTimeField(auto_now_add=True)
+    room_type = models.IntegerField(max_length=1)
+    title = models.CharField(max_length=64) #32자 이내
+    grade_limit = models.IntegerField(max_length=1, null=True)
+    heads_limit = models.IntegerField(max_length=1)
+    gender_limit = models.IntegerField(max_length=1, null=True)
+    meet_purpose = models.CharField(max_length=255, blank=True)
+    room_description = models.CharField(max_length=255, blank=True)
+    meet_status = models.CharField(max_length=1, blank=True)
+    room_open = models.CharField(max_length=1, default="Y")
+    common = models.TextField(blank=True)
+    mbti = models.CharField(max_length=4, blank=True)
+    interest = models.TextField(blank=True)
+    college = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        db_table = 'rooms'
+
+
+class RoomUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'room_users'
+
+
+
+
+
+
+
+
+
+
+
+
 # class Room(models.Model):
 #     # user = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'user')
 #     room_type = models.IntegerField(max_length=1)
