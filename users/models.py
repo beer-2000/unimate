@@ -11,29 +11,47 @@ from django.dispatch import receiver
 # null은 null로 저장, blank는 입력 폼에서 빈 칸으로 입력하고 DB에는 '' 으로 저장됨.
 # 따라서, CharField의 경우 null=True 만으로는 빈칸 입력이 불가능하여 blank=True로 처리함.
 # IntegerField의 경우 null=True로 처리했고, Profile 생성 시  None 이 저장됨.
+
+### Profile : User와 one-to-one 관계로, 프로필 정보들을 저장
 class Profile(models.Model):
+
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+    SCHOOL_AUTH_CHOICES = (
+        ('Y', 'School authentication complete'),
+        ('N', 'School authentication necessary'),
+    )
+    WITHDRAWN_CHOICES = (
+        ('general', 'General Member'),
+        ('withdrawal', 'Withdrawal member'),
+    )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     university_name = models.CharField(max_length=32)
     college_name = models.CharField(max_length=32)
     major_name = models.CharField(max_length=32)
-    school_email = models.EmailField(max_length=254)
-    birth_of_date = models.DateField(null=True)
-    gender = models.IntegerField(null=True)
-    age = models.IntegerField(null=True)
-    entrance_year = models.IntegerField(null=True)
+    school_email = models.EmailField(max_length=254, blank=True)
+    birth_of_date = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
+    age = models.IntegerField(null=True) #나이 필요 없을 것 같은데..?
+    entrance_year = models.IntegerField(blank=True, null=True)
     grade = models.IntegerField(null=True)
     nickname = models.CharField(max_length=200)
     introducing = models.CharField(max_length=255, blank=True)
-    school_auth_status = models.BooleanField(default=False)
+    school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
     registration_date = models.DateField(auto_now_add=True)
     mbti = models.CharField(max_length=4, blank=True)
     interest_list = models.TextField(blank=True)
-    withdrawn_status = models.CharField(max_length=1, default="N")
+    withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'
 
 
+# User의 Post가 save되면 그것을 참조하는 Profile 객체를 만들어 저장하라는 명령
+# * 이해 필요
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     print(f"sender: {sender}, instance: {instance}, created: {created}")
@@ -46,36 +64,56 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
+### Room : 방 정보를 저장하는 테이블로, Profile과 many-to-many관계, 중간테이블로 RoomUser 생성
 class Room(models.Model):
-    owner = models.ManyToManyField(User, through='RoomUser')
-    created_at = models.DateTimeField(auto_now_add=True)
-    room_type = models.IntegerField(max_length=1)
-    title = models.CharField(max_length=64) #32자 이내
-    grade_limit = models.IntegerField(max_length=1, null=True)
-    heads_limit = models.IntegerField(max_length=1)
-    gender_limit = models.IntegerField(max_length=1, null=True)
-    meet_purpose = models.CharField(max_length=255, blank=True)
-    room_description = models.CharField(max_length=255, blank=True)
-    meet_status = models.CharField(max_length=1, blank=True)
-    room_open = models.CharField(max_length=1, default="Y")
-    common = models.TextField(blank=True)
-    mbti = models.CharField(max_length=4, blank=True)
-    interest = models.TextField(blank=True)
-    college = models.CharField(max_length=255, blank=True)
 
-    class Meta:
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('N', 'Not specified'),
+    )
+    MEET_CHOICES = (
+        ('Y', 'Meeting exist'),
+        ('N', 'Meeting not exist'),
+    )
+    OPEN_CHOICES = (
+        ('open', 'Open'),
+        ('closed', 'Closed'),
+    )
+    
+    owner = models.ManyToManyField(User, through='RoomUser') #방의 구성원을 저장, * 이해 필요(우측 형태로 저장되어있는데, 테이블 조회시 보여지지는 않고, 매개 역할을 하는 듯) --> <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7fad8950fbb0> 형태로 저장
+    created_at = models.DateTimeField(auto_now_add=True) #방 생성 일시
+    room_type = models.IntegerField() #방 성격 / 채팅방: 0, 약속방: 1 로 지정 / required
+    title = models.CharField(max_length=64) #방 제목: 32자 이내
+    grade_limit = models.IntegerField(null=True, blank=True) #학년 제한 / null(전체학년), 1~5(각 학년만)
+    heads_limit = models.IntegerField() #최대 입장 인원수 제한 / 3~15 / required
+    gender_limit = models.CharField(max_length=80, choices=GENDER_CHOICES, default='N') #성별 입장 제한 / null(상관없음), 0(여자만), 1(남자만)
+    meet_purpose = models.CharField(max_length=255, blank=True) #약속 목적 / 약속이 정해진 방에만 기입, 나머지는 ''
+    room_description = models.CharField(max_length=255, blank=True) #방 설명: 100자 이내 / 방을 자유자재로 소개, 설명
+    meet_status = models.CharField(max_length=80, choices=MEET_CHOICES, default='N') #약속 상태 / Y(약속이 정해진 방), N(약속이 정해지지 않은 방)
+    room_open = models.CharField(max_length=80, choices=OPEN_CHOICES, default='open') #방문 상태 / Y(열림, 입장 가능), N(닫힘, 입장 불가능)
+    common = models.TextField(blank=True) #공통점: 방의 공통점은 0개 또는 1개로, 공통점이 있다면 그 종류를 지정 / ''(공통점 없음), mbti, interest, college
+    mbti = models.CharField(max_length=4, blank=True) #common이 mbti인 경우만
+    interest = models.TextField(blank=True) #common이 interest인 경우만, 방 만드는 사람의 관심사 중 1개 지정
+    college = models.CharField(max_length=255, blank=True) #common이 interest인 경우만, 방 만드는 사람의 단과대 정보
+
+    class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'rooms'
 
 
 class RoomUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE) #user_id : User를 FK로 참조
+    room = models.ForeignKey(Room, on_delete=models.CASCADE) #room_id : Room을 FK로 참조
+    created_at = models.DateTimeField(auto_now_add=True) #방 입장 시간
 
-    class Meta:
+    class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'room_users'
 
-
+### many-to-many 저장하는 방법(python)
+# room1 = Room.objects.get(pk=1) --> room1 객체에 Room의 행 1개를 저장
+# person1 = User.objects.get(pk=1) --> person1 객체에 User의 행 1개를 저장
+# room1.owner.add(person1) --> room1과 person1이 연결됨
+# person1.room_set.add(room1) --> person1과 room1이 연결됨 (owner는 Room에서 정의했기 때문에, person1은 room_set을 사용해야 함)
 
 
 
