@@ -1,11 +1,41 @@
-from tkinter import CASCADE
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 # Create your models here.
+# 대학교 정보
+class University(models.Model):
+    university = models.CharField(max_length=32, blank=True)
 
+    class Meta:
+        db_table = 'university'
+    
+    def __str__(self):   
+        return self.university
+
+# 단과대 정보
+class College(models.Model):
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="colleges", db_column="university")
+    college = models.CharField(max_length=32)
+
+    class Meta:
+        db_table = 'college'
+    
+    def __str__(self):   
+        return self.college
+
+# # 학과 정보
+class Major(models.Model):
+    university = models.ForeignKey(College, on_delete=models.CASCADE, related_name="universities", db_column="university")
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="colleges", db_column="college")
+    major = models.CharField(max_length=32)
+
+    class Meta:
+        db_table = 'major'
+    
+    def __str__(self):   
+        return self.major
 
 ### null=True 와 blank=True 의 차이점
 # null은 null로 저장, blank는 입력 폼에서 빈 칸으로 입력하고 DB에는 '' 으로 저장됨.
@@ -29,9 +59,10 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    university_name = models.CharField(max_length=32)
-    college_name = models.CharField(max_length=32)
-    major_name = models.CharField(max_length=32)
+    # school_info = models.ForeignKey(Major, on_delete=models.CASCADE, related_name="schools", db_column="school_info")
+    # university = models.ForeignKey(University, on_delete=models.CASCADE)
+    # college = models.ForeignKey(College, on_delete=models.CASCADE)
+    # major = models.ForeignKey(Major, on_delete=models.CASCADE)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
@@ -114,46 +145,3 @@ class RoomUser(models.Model):
 # person1 = User.objects.get(pk=1) --> person1 객체에 User의 행 1개를 저장
 # room1.owner.add(person1) --> room1과 person1이 연결됨
 # person1.room_set.add(room1) --> person1과 room1이 연결됨 (owner는 Room에서 정의했기 때문에, person1은 room_set을 사용해야 함)
-
-
-
-
-
-
-
-
-
-
-# class Room(models.Model):
-#     # user = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'user')
-#     room_type = models.IntegerField(max_length=1)
-#     title = models.CharField(max_length=64) #32자 이내
-#     grade_limit = models.IntegerField(max_length=1, null=True)
-#     heads_limit = models.IntegerField(max_length=1, null=True)
-#     gender_limit = models.IntegerField(max_length=1, null=True)
-#     meet_purpose = models.CharField(max_length=255, blank=True)
-#     room_description = models.CharField(max_length=255, blank=True)
-#     meet_status = models.CharField(max_length=1, blank=True)
-#     room_open = models.CharField(max_length=1, default="Y")
-#     common = models.TextField(blank=True)
-#     mbti = models.CharField(max_length=4, blank=True)
-#     interest = models.TextField(blank=True)
-    
-#     users = models.ManyToManyField(User, related_name='users')
-
-#     class Meta:
-#         db_table = 'room'
-
-# class UserRoom(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     room = models.ForeignKey(Room, on_delete=models.CASCADE)
-
-#     class Meta:
-#         db_table = 'user_room'
-
-
-# class Meet(models.Model):
-#     room_id = models.ForeignKey("Room", on_delete=CASCADE)
-
-#     class Meta:
-#         db_table = 'meet'

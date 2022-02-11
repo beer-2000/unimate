@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from knox.models import AuthToken
-from users.serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer, ProfileDetailSerializer, ProfileSerializer
-from users.models import Profile
+from users.serializers import *
+from users.models import *
 
 # Create your views here.
 @api_view(['GET'])
@@ -62,3 +62,62 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
+
+# class UniversityViewSet(viewsets.ModelViewSet):
+#     queryset = University.objects.all()
+#     serializer_class = UniversitySerializer
+
+# class CollegeViewSet(viewsets.ModelViewSet):
+#     queryset = College.objects.all()
+#     serializer_class = CollegeSerializer
+
+# class MajorViewSet(viewsets.ModelViewSet):
+#     queryset = Major.objects.all()
+#     serializer_class = MajorSerializer
+
+class UniversityView(APIView):
+    def get(self, request, *args, **kwargs):
+        university = University.objects.all()
+        serializer = UniversitySerializer(university, many=True)
+        return Response(serializer.data)
+
+
+class CollegeView(APIView):
+    def get(self, request, *args, **kwargs):
+        university = University.objects.get(pk=kwargs['university_id'])
+        college = College.objects.filter(university=university)
+        serializer = CollegeSerializer(college, many=True)
+        return Response(serializer.data)
+
+
+# class AllCollegeView(APIView):
+#     def get(self, request, *args, **kwargs):
+#         user = request.user
+
+#         if user == None or user.is_anonymous:
+#             return Response(status=status.HTTP_404_NOT_FOUND)
+
+#         college = College.objects.all()
+#         serializer = serializers.CollegeSerializer(college, many=True)
+#         return Response(serializer.data)
+
+                  
+class MajorView(APIView):
+    def get(self, request, *args, **kwargs):
+        college = College.objects.get(pk=kwargs['college_id'])
+        major = Major.objects.filter(college=college)
+        serializer = MajorSerializer(major, many=True)
+        return Response(serializer.data)
+
+
+# class AllMajorView(APIView):
+#     def get(self, request, *args, **kwargs):
+#         user = request.user
+
+#         if user == None or user.is_anonymous:
+#             return Response(status=status.HTTP_404_NOT_FOUND)
+
+#         major = Major.objects.all()
+#         serializer = serializers.MajorSerializer(major, many=True)
+#         return Response(serializer.data)
+

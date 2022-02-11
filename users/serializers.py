@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-
-from users.models import Profile
+from django.contrib.auth.models import User
+from users.models import *
 
 
 # 회원가입
@@ -17,7 +16,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
             validated_data["username"], None, validated_data["password"]
         )
         return user
-    
+
 
 # 접속 유지중인지 확인
 class UserSerializer(serializers.ModelSerializer):
@@ -35,23 +34,41 @@ class LoginUserSerializer(serializers.Serializer):
         user = authenticate(**data)
         if user and user.is_active:
             return user
-        raise serializers.ValidationError("Unable to log in with provided credentials.")
+        raise serializers.ValidationError(
+            "Unable to log in with provided credentials.")
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("nickname", "introducing",)
-#        fields = ("id", "user_id", "university_name", "college_name", "major_name", "school_email", "birth_of_date", "gender",
-#            "age", "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
-#            "mbti_first", "mbti_second", "mbti_third", "mbti_fourth", "withdrawn_status")
+# class ProfileSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Profile
+#         fields = ("nickname", "introducing",)
 
 
+# user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ("id", "user_id", "university_name", "college_name", "major_name", "school_email", "birth_of_date", "gender",
-            "age", "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
-            "mbti", "withdrawn_status")
+        fields = ("id", "user_id", "school_email", "birth_of_date", "gender",
+                  "age", "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
+                  "mbti", "withdrawn_status")
+
+# 대학교
+class UniversitySerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = University
+        fields = ['id', 'university']
 
 
+class CollegeSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = College
+        fields = ['id', 'college', 'university']
+
+
+class MajorSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Major
+        fields = ['id', 'major', 'college', 'university']
