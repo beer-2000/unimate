@@ -1,5 +1,6 @@
+from multiprocessing.sharedctypes import Value
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -27,7 +28,7 @@ class College(models.Model):
 
 # # 학과 정보
 class Major(models.Model):
-    university = models.ForeignKey(College, on_delete=models.CASCADE, related_name="universities", db_column="university")
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="universities", db_column="university")
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="colleges", db_column="college")
     major = models.CharField(max_length=32)
 
@@ -42,7 +43,58 @@ class Major(models.Model):
 # 따라서, CharField의 경우 null=True 만으로는 빈칸 입력이 불가능하여 blank=True로 처리함.
 # IntegerField의 경우 null=True로 처리했고, Profile 생성 시  None 이 저장됨.
 
-### Profile : User와 one-to-one 관계로, 프로필 정보들을 저장
+# user 커스터마이징
+class UserManager(BaseUserManager):
+    def create_user(self, email, username, university, college, major, password=None):
+        if not username:
+            raise ValueError('User must have an username')
+        
+        user = self.model(
+            username = self.model.normalize_username(username),
+            email = self.normalize_email(email),
+            university = university,
+            college = college,
+            major = major,
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+       
+        return user
+    
+    def create_superuser(self, username, email, password):
+        user = self.create_user(
+            username = self.model.normalize_username(username),
+            email = self.normalize_email(email),
+            university = 1,
+            college = 1,
+            major = 1,
+            password=password,
+        )
+
+        user.is_superuser = True
+        user.is_staff = True
+        user.save(using=self._db)
+        
+        return user
+
+class User(AbstractUser):
+    username = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(max_length=254, blank=True)
+    university = models.ForeignKey(University, on_delete=models.CASCADE)
+    college = models.ForeignKey(College, on_delete=models.CASCADE)
+    major = models.ForeignKey(Major, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+
+    objects = UserManager()
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.username
+
+
+# Profile : User와 one-to-one 관계로, 프로필 정보들을 저장
 class Profile(models.Model):
 
     GENDER_CHOICES = (
@@ -59,14 +111,9 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # school_info = models.ForeignKey(Major, on_delete=models.CASCADE, related_name="schools", db_column="school_info")
-    # university = models.ForeignKey(University, on_delete=models.CASCADE)
-    # college = models.ForeignKey(College, on_delete=models.CASCADE)
-    # major = models.ForeignKey(Major, on_delete=models.CASCADE)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
-    age = models.IntegerField(null=True) #나이 필요 없을 것 같은데..?
     entrance_year = models.IntegerField(blank=True, null=True)
     grade = models.IntegerField(null=True)
     nickname = models.CharField(max_length=200)
@@ -79,6 +126,7 @@ class Profile(models.Model):
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'
+
 
 
 # User의 Post가 save되면 그것을 참조하는 Profile 객체를 만들어 저장하라는 명령

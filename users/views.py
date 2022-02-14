@@ -13,13 +13,43 @@ def HelloUser(request):
     return Response("hello world!")
 
 
+# class RegistrationAPI(generics.GenericAPIView):
+#     serializer_class = CreateUserSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
+#             body = {"message": "short field"}
+#             return Response(body, status=status.HTTP_400_BAD_REQUEST)
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.save()
+#         return Response(
+#             {
+#                 "user": UserSerializer(
+#                     user, context=self.get_serializer_context()
+#                 ).data,
+#                 "token": AuthToken.objects.create(user)[1],
+#             }
+#         )
+
 class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
 
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        if user == None or user.is_anonymous:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer =  CreateUserSerializer(user, many=True)
+        
+        return Response(serializer.data)
+    
     def post(self, request, *args, **kwargs):
         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
             body = {"message": "short field"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -63,17 +93,6 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
 
-# class UniversityViewSet(viewsets.ModelViewSet):
-#     queryset = University.objects.all()
-#     serializer_class = UniversitySerializer
-
-# class CollegeViewSet(viewsets.ModelViewSet):
-#     queryset = College.objects.all()
-#     serializer_class = CollegeSerializer
-
-# class MajorViewSet(viewsets.ModelViewSet):
-#     queryset = Major.objects.all()
-#     serializer_class = MajorSerializer
 
 class UniversityView(APIView):
     def get(self, request, *args, **kwargs):
