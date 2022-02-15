@@ -149,9 +149,30 @@ class MajorView(APIView):
 
 
 # 방 만들기
-class RoomCreateAPI(generics.CreateAPIView):
-    queryset = Room.objects.all()
+# class RoomCreateAPI(generics.CreateAPIView):
+#     queryset = Room.objects.all()
+#     serializer_class = RoomSerializer
+
+
+class RoomCreateAPI(APIView):
     serializer_class = RoomSerializer
+    
+    def post(self, request):
+        room_serializer = RoomSerializer(data=request.data)
+
+        if room_serializer.is_valid():
+            room_serializer.save()
+            #room 정보 저장 후 입장시키기
+            print(room_serializer.data['id'])
+            print(request.user.id)
+            person = User.objects.get(pk=request.user.id)
+            room = Room.objects.get(pk=room_serializer.data['id'])
+            room.owner.add(person)
+            
+            return Response(room_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # 방 목록 - 최신순 정렬(기본)
 class RoomListAPI(generics.ListAPIView):
