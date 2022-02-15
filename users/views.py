@@ -41,7 +41,7 @@ class RegistrationAPI(generics.GenericAPIView):
         if user == None or user.is_anonymous:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        serializer =  CreateUserSerializer(user, many=True)
+        serializer = serializers.CreateUserSerializer(user)
         
         return Response(serializer.data)
     
@@ -49,6 +49,10 @@ class RegistrationAPI(generics.GenericAPIView):
         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
             body = {"message": "short field"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        
+        univ = University.objects.get(pk=request.data['university'])
+        col = College.objects.get(pk=request.data['college'])
+        maj = College.objects.get(pk=request.data['major'])
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -61,6 +65,9 @@ class RegistrationAPI(generics.GenericAPIView):
                 "token": AuthToken.objects.create(user)[1],
             }
         )
+    def get_queryset(self):
+        # col = College.objects.filter(university=)
+        return super().get_queryset()
 
 
 class LoginAPI(generics.GenericAPIView):

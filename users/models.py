@@ -17,8 +17,9 @@ class University(models.Model):
 
 # 단과대 정보
 class College(models.Model):
-    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="colleges", db_column="university")
     college = models.CharField(max_length=32)
+    university = models.ForeignKey(University, on_delete=models.CASCADE, db_column="university")
+    
 
     class Meta:
         db_table = 'college'
@@ -28,7 +29,7 @@ class College(models.Model):
 
 # # 학과 정보
 class Major(models.Model):
-    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="universities", db_column="university")
+    university = models.ForeignKey(College, on_delete=models.CASCADE, related_name="universities", db_column="university")
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="colleges", db_column="college")
     major = models.CharField(max_length=32)
 

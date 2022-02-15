@@ -26,7 +26,7 @@ class MajorSerializer(serializers.ModelSerializer):
         fields = ['id', 'major', 'college', 'university']
 # 회원가입
 class CreateUserSerializer(serializers.ModelSerializer):
-    # university = serializers.ReadOnlyField(source="university.username")
+    # university = serializers.ReadOnlyField(source="university.university")
     # universities = UniversitySerializer()
     # college = serializers.ReadOnlyField(source="college.college")
     # major = serializers.ReadOnlyField(source="major.major")
@@ -73,9 +73,9 @@ class LoginUserSerializer(serializers.Serializer):
 
 # user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    university = serializers.ReadOnlyField(source="university.university", read_only=True)
-    college = serializers.ReadOnlyField(source="college.college", read_only=True)
-    major = serializers.ReadOnlyField(source="major.major", read_only=True)
+    university = serializers.ReadOnlyField(source="user.university_id", read_only=True)
+    college = serializers.ReadOnlyField(source="user.college_id", read_only=True)
+    major = serializers.ReadOnlyField(source="user.major_id", read_only=True)
     class Meta:
         model = Profile
         fields = ("id", "user_id", "university", "college", "major", "school_email", "birth_of_date", "gender",
