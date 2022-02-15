@@ -83,3 +83,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
                   "mbti", "withdrawn_status")
 
 
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = '__all__'

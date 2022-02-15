@@ -64,20 +64,18 @@ class UserManager(BaseUserManager):
         return user
     
     def create_superuser(self, username, email, password):
-        user = self.create_user(
-            username = self.model.normalize_username(username),
-            email = self.normalize_email(email),
-            university = 1,
-            college = 1,
-            major = 1,
-            password=password,
-        )
-
-        user.is_superuser = True
-        user.is_staff = True
-        user.save(using=self._db)
-        
-        return user
+            user = self.create_user(
+                username = self.model.normalize_username(username),
+                email = self.normalize_email(email),
+                university = University.objects.get(university='univ1'),
+                college = College.objects.get(college='col1'),
+                major = Major.objects.get(major='major1'),
+                password=password,
+            )
+            user.is_superuser = True
+            user.is_staff = True
+            user.save(using=self._db)
+            return user
 
 class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True)
@@ -89,7 +87,7 @@ class User(AbstractUser):
 
     objects = UserManager()
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['email']
 
     def __str__(self):
         return self.username

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, permissions, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -147,3 +147,30 @@ class MajorView(APIView):
 #         serializer = serializers.MajorSerializer(major, many=True)
 #         return Response(serializer.data)
 
+
+# 방 만들기
+class RoomCreateAPI(generics.CreateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
+# 방 목록 - 최신순 정렬(기본)
+class RoomListAPI(generics.ListAPIView):
+    queryset = Room.objects.all().order_by('-created_at')
+    serializer_class = RoomSerializer
+
+
+# 방 입장
+class RoomEntranceAPI(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(Room, pk=pk)
+
+    def get(self, request, pk, format=None):
+        print(request.user.id)
+        room = self.get_object(pk)
+        serializer = RoomSerializer(room)
+        return Response(serializer.data)
+    # 입장하기 (토큰 주인 대상)
+    def post(self, request, pk):
+        room = self.get_object(pk)
+        person = User.objects.get(pk=request.user.id)
+        room.owner.add(person)

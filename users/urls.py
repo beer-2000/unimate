@@ -13,4 +13,8 @@ urlpatterns = [
     path('university/', UniversityView.as_view()),
     path('college/<int:university_id>/', CollegeView.as_view()),
     path('major/<int:college_id>/', MajorView.as_view()),
+    #방 관련
+    path('room_create/', RoomCreateAPI.as_view(), name='room_create'),
+    path('room_list/', RoomListAPI.as_view(), name='room_list'),
+    path('room_entrance/<int:pk>/', RoomEntranceAPI.as_view(), name='room_entrance'),
 ]

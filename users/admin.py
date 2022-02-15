@@ -22,3 +22,7 @@ admin.site.register(User, UserAdmin)
 admin.site.register(Profile)
 admin.site.register(Room)
 admin.site.register(RoomUser)
+
+admin.site.register(University)
+admin.site.register(College)
+admin.site.register(Major)
