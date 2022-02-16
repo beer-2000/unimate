@@ -18,4 +18,6 @@ urlpatterns = [
     path('room_create/', RoomCreateAPI.as_view(), name='room_create'),
     path('room_list/', RoomListAPI.as_view(), name='room_list'),
     path('room_entrance/<int:pk>/', RoomEntranceAPI.as_view(), name='room_entrance'),
+    path('room_exit/<int:pk>/', RoomExitAPI.as_view(), name='room_exit'),
+    path('participation/', ParticipationListAPI.as_view(), name='participation'),
 ]

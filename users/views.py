@@ -1,3 +1,7 @@
+import json
+from django.http import JsonResponse
+from django.core.serializers import serialize
+
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, permissions, generics, status
 from rest_framework.response import Response
@@ -155,6 +159,17 @@ class RoomListAPI(generics.ListAPIView):
     serializer_class = RoomSerializer
 
 
+# 대화 중인 채팅방 (owner가 안 불러와져서, RoomWithoutownerSerializer 작성)
+class ParticipationListAPI(APIView):
+    def get(self, request, format=None):
+        queryset = User.objects.filter(pk=request.user.id).prefetch_related('room_set')[0].room_set.values()
+        print(queryset)
+        serializer = RoomWithoutownerSerializer(queryset, many=True)
+        print(serializer)
+        #return Response(status=status.HTTP_200_OK)
+        return Response(serializer.data)
+
+
 # 방 입장
 class RoomEntranceAPI(APIView):
     def get_object(self, pk):
@@ -170,3 +185,26 @@ class RoomEntranceAPI(APIView):
         room = self.get_object(pk)
         person = User.objects.get(pk=request.user.id)
         room.owner.add(person)
+        body = {"message": "Entrance complete"}
+        return Response(body, status=status.HTTP_200_OK)
+
+
+# 방 퇴장
+class RoomExitAPI(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(Room, pk=pk)
+
+    def get(self, request, pk, format=None):
+        print(request.user.id)
+        room = self.get_object(pk)
+        serializer = RoomSerializer(room)
+        return Response(serializer.data)
+    # 퇴장하기 (토큰 주인 대상)
+    def post(self, request, pk):
+        room = self.get_object(pk)
+        roomuser = RoomUser.objects.filter(room_id=room.id, user_id=request.user.id)
+        roomuser.delete()
+        body = {"message": "Exit complete"}
+        return Response(body, status=status.HTTP_200_OK)
+
+

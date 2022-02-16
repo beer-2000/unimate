@@ -24,10 +24,12 @@ class MajorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Major
         fields = ['id', 'major', 'college', 'university']
-
 # 회원가입
 class CreateUserSerializer(serializers.ModelSerializer):
-
+    # university = serializers.ReadOnlyField(source="university.university")
+    # universities = UniversitySerializer()
+    # college = serializers.ReadOnlyField(source="college.college")
+    # major = serializers.ReadOnlyField(source="major.major")
     class Meta:
         model = User
         fields = ("id", "username", "password", "university", "college", "major")
@@ -35,8 +37,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            None, validated_data["username"], validated_data["university"],
-            validated_data["college"], validated_data["major"], validated_data["password"],
+            validated_data["username"], validated_data["password"],
+            validated_data["university"], validated_data["college"], validated_data["major"]
+            # **validated_data
         )
         return user
 
@@ -45,14 +48,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-
-    def to_representation(self, instance):
-        represent = dict()
-        represent['username'] = instance.username
-        represent['university'] = instance.university.university
-        represent['college'] = instance.college.college
-        represent['major'] = instance.major.major
-        return represent
+        fields = ("id", "username",)
 
 
 # 로그인
@@ -75,7 +71,7 @@ class LoginUserSerializer(serializers.Serializer):
 #         fields = ("nickname", "introducing",)
 
 
-# 유저 정보 (profile에도 학교 정보 나오게 하고 싶은데 차차 하겠음)
+# user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
     university = serializers.ReadOnlyField(source="user.university_id", read_only=True)
     college = serializers.ReadOnlyField(source="user.college_id", read_only=True)
@@ -91,3 +87,10 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = '__all__'
+
+
+class RoomWithoutownerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ("id", "created_at", "room_type", "title", "grade_limit", "heads_limit", "gender_limit",
+                "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")
