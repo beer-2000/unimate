@@ -13,24 +13,6 @@ def HelloUser(request):
     return Response("hello world!")
 
 
-# class RegistrationAPI(generics.GenericAPIView):
-#     serializer_class = CreateUserSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
-#             body = {"message": "short field"}
-#             return Response(body, status=status.HTTP_400_BAD_REQUEST)
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-#         return Response(
-#             {
-#                 "user": UserSerializer(
-#                     user, context=self.get_serializer_context()
-#                 ).data,
-#                 "token": AuthToken.objects.create(user)[1],
-#             }
-#         )
 
 class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
@@ -50,10 +32,6 @@ class RegistrationAPI(generics.GenericAPIView):
             body = {"message": "short field"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
         
-        univ = University.objects.get(pk=request.data['university'])
-        col = College.objects.get(pk=request.data['college'])
-        maj = College.objects.get(pk=request.data['major'])
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -65,9 +43,6 @@ class RegistrationAPI(generics.GenericAPIView):
                 "token": AuthToken.objects.create(user)[1],
             }
         )
-    def get_queryset(self):
-        # col = College.objects.filter(university=)
-        return super().get_queryset()
 
 
 class LoginAPI(generics.GenericAPIView):
@@ -100,14 +75,14 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
 
-
+# 대학교 정보
 class UniversityView(APIView):
     def get(self, request, *args, **kwargs):
         university = University.objects.all()
         serializer = UniversitySerializer(university, many=True)
         return Response(serializer.data)
 
-
+# 단과대 정보
 class CollegeView(APIView):
     def get(self, request, *args, **kwargs):
         university = University.objects.get(pk=kwargs['university_id'])
@@ -127,7 +102,7 @@ class CollegeView(APIView):
 #         serializer = serializers.CollegeSerializer(college, many=True)
 #         return Response(serializer.data)
 
-                  
+# 학과정보  
 class MajorView(APIView):
     def get(self, request, *args, **kwargs):
         college = College.objects.get(pk=kwargs['college_id'])
