@@ -25,9 +25,9 @@ class MajorSerializer(serializers.ModelSerializer):
         model = Major
         fields = ['id', 'major', 'college', 'university']
 
+        
 # 회원가입
 class CreateUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ("id", "username", "password", "university", "college", "major")
@@ -75,19 +75,25 @@ class LoginUserSerializer(serializers.Serializer):
 #         fields = ("nickname", "introducing",)
 
 
-# 유저 정보 (profile에도 학교 정보 나오게 하고 싶은데 차차 하겠음)
+# user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
     university = serializers.ReadOnlyField(source="user.university_id", read_only=True)
     college = serializers.ReadOnlyField(source="user.college_id", read_only=True)
     major = serializers.ReadOnlyField(source="user.major_id", read_only=True)
     class Meta:
         model = Profile
-        fields = ("id", "user_id", "university", "college", "major", "school_email", "birth_of_date", "gender",
-                  "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
-                  "mbti", "withdrawn_status")
+        fields = '__all__'
 
 
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = '__all__'
+
+
+# RoomSerializer - "owner"
+class RoomWithoutownerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ("id", "created_at", "room_type", "title", "grade_limit", "heads_limit", "gender_limit",
+                "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")
