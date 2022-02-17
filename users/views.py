@@ -1,4 +1,5 @@
 import json
+from ast import literal_eval
 from django.http import JsonResponse
 from django.core.serializers import serialize
 
@@ -127,12 +128,6 @@ class MajorView(APIView):
 #         return Response(serializer.data)
 
 
-# 방 만들기
-# class RoomCreateAPI(generics.CreateAPIView):
-#     queryset = Room.objects.all()
-#     serializer_class = RoomSerializer
-
-
 class RoomCreateAPI(APIView):
     serializer_class = RoomSerializer
     
@@ -158,6 +153,43 @@ class RoomListAPI(generics.ListAPIView):
     queryset = Room.objects.all().order_by('-created_at')
     serializer_class = RoomSerializer
 
+
+# 'editing' 추천 기능(방과 프로필 비교) 작성 중
+class RoomRecommendAPI(APIView):
+    def get(self, request, format=None):
+        allroom = Room.objects.all().order_by('-created_at')
+        room = allroom[0]
+        profile = Profile.objects.get(user_id=request.user.id)
+        print(compare_mbti(room.mbti, profile.mbti))
+
+        # print(profile)
+        # if room.common == 'mbti':
+        #     room_mbti = literal_eval(room.mbti)
+        #     profile_mbti = literal_eval(profile.mbti)
+        #     print(room.title, room.common, room.mbti)
+        #     print(room_mbti, profile_mbti)
+        #     count_mbti = 0
+        #     for i in range(4):
+        #         if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
+        #             pass
+        #         else:
+        #             count_mbti = count_mbti+1
+        #     print(count_mbti)
+        return Response(status=status.HTTP_200_OK)
+
+def compare_mbti(room_mbti, profile_mbti):
+    room = literal_eval(room_mbti)
+    profile = literal_eval(profile_mbti)
+    count_mbti = 0
+    for i in range(4):
+        if (room[i] == 'O') | (room[i] == profile[i]):
+            pass
+        else:
+            count_mbti = count_mbti+1
+    if count_mbti == 0:
+        return True
+    else:
+        return False
 
 # 대화 중인 채팅방 (owner가 안 불러와져서, RoomWithoutownerSerializer 작성)
 class ParticipationListAPI(APIView):

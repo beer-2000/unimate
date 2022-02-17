@@ -110,6 +110,8 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=80)
+    phone_auth = models.IntegerField()
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
@@ -119,8 +121,8 @@ class Profile(models.Model):
     introducing = models.CharField(max_length=255, blank=True)
     school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
     registration_date = models.DateField(auto_now_add=True)
-    mbti = models.CharField(max_length=4, blank=True)
-    interest_list = models.TextField(blank=True)
+    mbti = models.CharField(max_length=255, blank=True)
+    interest_list = models.CharField(max_length=255, blank=True)
     withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
@@ -170,10 +172,10 @@ class Room(models.Model):
     room_description = models.CharField(max_length=255, blank=True) #방 설명: 100자 이내 / 방을 자유자재로 소개, 설명
     meet_status = models.CharField(max_length=80, choices=MEET_CHOICES, default='N') #약속 상태 / Y(약속이 정해진 방), N(약속이 정해지지 않은 방)
     room_open = models.CharField(max_length=80, choices=OPEN_CHOICES, default='open') #방문 상태 / Y(열림, 입장 가능), N(닫힘, 입장 불가능)
-    common = models.TextField(blank=True) #공통점: 방의 공통점은 0개 또는 1개로, 공통점이 있다면 그 종류를 지정 / ''(공통점 없음), mbti, interest, college
-    mbti = models.CharField(max_length=4, blank=True) #common이 mbti인 경우만
-    interest = models.TextField(blank=True) #common이 interest인 경우만, 방 만드는 사람의 관심사 중 1개 지정
-    college = models.CharField(max_length=255, blank=True) #common이 interest인 경우만, 방 만드는 사람의 단과대 정보
+    common = models.CharField(max_length=80, blank=True) #공통점: 방의 공통점은 0개 또는 1개로, 공통점이 있다면 그 종류를 지정 / ''(공통점 없음), mbti, interest, college
+    mbti = models.CharField(max_length=255, blank=True) #common이 mbti인 경우만
+    interest = models.IntegerField(null=True, blank=True) #common이 interest인 경우만, 방 만드는 사람의 관심사 중 1개 지정
+    college = models.IntegerField(null=True, blank=True) #common이 interest인 경우만, 방 만드는 사람의 단과대 정보
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'rooms'
@@ -190,5 +192,5 @@ class RoomUser(models.Model):
 ### many-to-many 저장하는 방법(python)
 # room1 = Room.objects.get(pk=1) --> room1 객체에 Room의 행 1개를 저장
 # person1 = User.objects.get(pk=1) --> person1 객체에 User의 행 1개를 저장
-# room1.owner.add(person1) --> room1과 person1이 연결됨
+# room1.owner.add(person1) --> room1과 person1ㅇ이 연결됨
 # person1.room_set.add(room1) --> person1과 room1이 연결됨 (owner는 Room에서 정의했기 때문에, person1은 room_set을 사용해야 함)

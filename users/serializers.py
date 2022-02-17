@@ -24,12 +24,10 @@ class MajorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Major
         fields = ['id', 'major', 'college', 'university']
+
+        
 # 회원가입
 class CreateUserSerializer(serializers.ModelSerializer):
-    # university = serializers.ReadOnlyField(source="university.university")
-    # universities = UniversitySerializer()
-    # college = serializers.ReadOnlyField(source="college.college")
-    # major = serializers.ReadOnlyField(source="major.major")
     class Meta:
         model = User
         fields = ("id", "username", "password", "university", "college", "major")
@@ -37,9 +35,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            validated_data["username"], validated_data["password"],
-            validated_data["university"], validated_data["college"], validated_data["major"]
-            # **validated_data
+            None, validated_data["username"], validated_data["university"],
+            validated_data["college"], validated_data["major"], validated_data["password"],
         )
         return user
 
@@ -48,7 +45,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username",)
+
+    def to_representation(self, instance):
+        represent = dict()
+        represent['username'] = instance.username
+        represent['university'] = instance.university.university
+        represent['college'] = instance.college.college
+        represent['major'] = instance.major.major
+        return represent
 
 
 # 로그인
@@ -78,9 +82,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     major = serializers.ReadOnlyField(source="user.major_id", read_only=True)
     class Meta:
         model = Profile
-        fields = ("id", "user_id", "university", "college", "major", "school_email", "birth_of_date", "gender",
-                  "entrance_year", "grade", "nickname", "introducing", "school_auth_status", "registration_date",
-                  "mbti", "withdrawn_status")
+        fields = '__all__'
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -89,6 +91,7 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# RoomSerializer - "owner"
 class RoomWithoutownerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
