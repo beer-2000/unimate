@@ -135,16 +135,19 @@ class RoomCreateAPI(APIView):
     
     def post(self, request):
         room_serializer = RoomSerializer(data=request.data)
-
         if room_serializer.is_valid():
             room_serializer.save()
-            #room 정보 저장 후 입장시키기
+            #입장시키기
             print(room_serializer.data['id'])
             print(request.user.id)
             person = User.objects.get(pk=request.user.id)
             room = Room.objects.get(pk=room_serializer.data['id'])
             room.owner.add(person)
-            
+            #university 불러와서 저장
+            room.university = str(request.user.university)
+            room.save()
+            # print(request.user.university)
+            # print(room.owner, room.university)
             return Response(room_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -160,10 +163,10 @@ class RoomListAPI(generics.ListAPIView):
 class RoomRecommendAPI(APIView):
     def get(self, request, format=None):
         allroom = Room.objects.all().order_by('-created_at')
-        room = allroom[1]
-        print(room)
+        room = allroom[0]
         profile = Profile.objects.get(user_id=request.user.id)
-        print(compare_mbti(room.mbti, profile.mbti))
+        #print(compare_mbti(room.mbti, profile.mbti))
+        print(room, profile, compare_interest(room.interest, profile.interest_list))
         return Response(status=status.HTTP_200_OK)
 
 

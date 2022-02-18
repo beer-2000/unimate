@@ -162,6 +162,7 @@ class Room(models.Model):
     )
     
     owner = models.ManyToManyField(User, through='RoomUser') #방의 구성원을 저장, * 이해 필요(우측 형태로 저장되어있는데, 테이블 조회시 보여지지는 않고, 매개 역할을 하는 듯) --> <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7fad8950fbb0> 형태로 저장
+    university = models.CharField(max_length=32, blank=True, default='') #방 만드는 user의 university 가져오기
     created_at = models.DateTimeField(auto_now_add=True) #방 생성 일시
     room_type = models.IntegerField() #방 성격 / 채팅방: 0, 약속방: 1 로 지정 / required
     title = models.CharField(max_length=64) #방 제목: 32자 이내
@@ -175,7 +176,7 @@ class Room(models.Model):
     common = models.CharField(max_length=80, blank=True) #공통점: 방의 공통점은 0개 또는 1개로, 공통점이 있다면 그 종류를 지정 / ''(공통점 없음), mbti, interest, college
     mbti = models.CharField(max_length=255, blank=True) #common이 mbti인 경우만
     interest = models.IntegerField(null=True, blank=True) #common이 interest인 경우만, 방 만드는 사람의 관심사 중 1개 지정
-    college = models.IntegerField(null=True, blank=True) #common이 interest인 경우만, 방 만드는 사람의 단과대 정보
+    college = models.CharField(max_length=32, blank=True) #common이 interest인 경우만, 방 만드는 사람의 단과대 정보
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'rooms'
