@@ -11,6 +11,8 @@ from rest_framework.decorators import api_view
 from knox.models import AuthToken
 from users.serializers import *
 from users.models import *
+from users.functions import *
+
 
 # Create your views here.
 @api_view(['GET'])
@@ -158,38 +160,15 @@ class RoomListAPI(generics.ListAPIView):
 class RoomRecommendAPI(APIView):
     def get(self, request, format=None):
         allroom = Room.objects.all().order_by('-created_at')
-        room = allroom[0]
+        room = allroom[1]
+        print(room)
         profile = Profile.objects.get(user_id=request.user.id)
         print(compare_mbti(room.mbti, profile.mbti))
-
-        # print(profile)
-        # if room.common == 'mbti':
-        #     room_mbti = literal_eval(room.mbti)
-        #     profile_mbti = literal_eval(profile.mbti)
-        #     print(room.title, room.common, room.mbti)
-        #     print(room_mbti, profile_mbti)
-        #     count_mbti = 0
-        #     for i in range(4):
-        #         if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
-        #             pass
-        #         else:
-        #             count_mbti = count_mbti+1
-        #     print(count_mbti)
         return Response(status=status.HTTP_200_OK)
 
-def compare_mbti(room_mbti, profile_mbti):
-    room = literal_eval(room_mbti)
-    profile = literal_eval(profile_mbti)
-    count_mbti = 0
-    for i in range(4):
-        if (room[i] == 'O') | (room[i] == profile[i]):
-            pass
-        else:
-            count_mbti = count_mbti+1
-    if count_mbti == 0:
-        return True
-    else:
-        return False
+
+
+
 
 # 대화 중인 채팅방 (owner가 안 불러와져서, RoomWithoutownerSerializer 작성)
 class ParticipationListAPI(APIView):

@@ -111,7 +111,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=80)
-    phone_auth = models.IntegerField()
+    phone_auth = models.IntegerField(null=True)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요

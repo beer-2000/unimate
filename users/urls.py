@@ -1,10 +1,12 @@
 from django.urls import path
 from users.views import *
+from knox import views as knox_views
 
 urlpatterns = [
     path("hello/", HelloUser),
     path("register/", RegistrationAPI.as_view()),
     path("login/", LoginAPI.as_view()),
+    path("logout/", knox_views.LogoutView.as_view(), name='knox_logout'),
     path("user/", UserAPI.as_view()),
     #user_pk : User 테이블의 pk인 'id' 참조
     #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
