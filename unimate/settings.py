@@ -82,6 +82,13 @@ WSGI_APPLICATION = 'unimate.wsgi.application'
 
 DATABASES = my_settings.DATABASES
 
+EMAIL_BACKEND = my_settings.EMAIL['EMAIL_BACKEND']
+EMAIL_HOST = my_settings.EMAIL['EMAIL_HOST']
+EMAIL_PORT = my_settings.EMAIL['EMAIL_PORT']
+EMAIL_HOST_USER = my_settings.EMAIL['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = my_settings.EMAIL['EMAIL_HOST_PASSWORD']
+EMAIL_USE_TLS = my_settings.EMAIL['EMAIL_USE_TLS']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

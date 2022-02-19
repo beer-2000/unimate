@@ -1,9 +1,8 @@
 import json
-from ast import literal_eval
-from django.http import JsonResponse
-from django.core.serializers import serialize
+from typing import Type
+from django.http import JsonResponse, HttpResponse
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework import viewsets, permissions, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +11,17 @@ from knox.models import AuthToken
 from users.serializers import *
 from users.models import *
 from users.functions import *
+
+from .email import message
+from .token import account_activation_token
+from django.core.exceptions import ValidationError 
+from django.core.validators import validate_email
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import EmailMessage
+from django.utils.encoding import force_bytes, force_str
+
+
 
 
 # Create your views here.
@@ -82,6 +92,82 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
 
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        try:
+            email = request.data["school_email"]
+            user = Profile.objects.get(school_email = email)
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            uid = urlsafe_base64_encode(force_bytes(Profile.user_id))
+            token = account_activation_token(user)
+            message_data = message(domain, uid, token)
+
+            mail_title = "학교 이메일 인증을 완료해주세요."
+            mail_to = email
+            email = EmailMessage(mail_title, message_data, to=[mail_to])
+            email.send()
+
+            return JsonResponse({"message" : "SUCCESS"}, status=200)
+        except ValidationError:
+            return JsonResponse({"error" : "VALIDATION_ERROR"}, status=400)
+        except KeyError:
+            return JsonResponse({"error" : "KEY_ERROR"}, status=400)
+        except TypeError:
+            return JsonResponse({"error" : "TYPE_ERROR"}, status=400)
+
+
+class EmailAuthView(APIView):
+    def post(self, request):
+        data = json.loads(request.body)
+        print(data)
+        try:
+            email = request.data["school_email"]
+            user = Profile.objects.get(school_email = email)
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            uid = urlsafe_base64_encode(force_bytes(Profile.user_id))
+            token = account_activation_token(user)
+            message_data = message(domain, uid, token)
+
+            mail_title = "학교 이메일 인증을 완료해주세요."
+            mail_to = email
+            email = EmailMessage(mail_title, message_data, to=[mail_to])
+            email.send()
+
+            return JsonResponse({"message" : "SUCCESS"}, status=200)
+        except ValidationError:
+            return JsonResponse({"error" : "VALIDATION_ERROR"}, status=400)
+        except KeyError:
+            return JsonResponse({"error" : "KEY_ERROR"}, status=400)
+        except TypeError:
+            return JsonResponse({"error" : "TYPE_ERROR"}, status=400)
+
+
+
+
+
+class Activate(APIView):
+    def get(self, request, uidb64, token):
+        try: 
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            profile = Profile.objects.get(pk=uid)
+            
+            if account_activation_token.check_token(profile, token):
+                profile.school_auth_status = 'Y'
+                profile.save() 
+                # return redirect(EMAIL['REDIRECT_PAGE'])
+                return Response('이메일 인증이 완료되었습니다.', status=status.HTTP_200_OK)
+            return JsonResponse({"message" : "AUTH FAIL"}, status=400) 
+        except ValidationError: 
+            return JsonResponse({"message" : "TYPE_ERROR"}, status=400) 
+        except KeyError: 
+            return JsonResponse({"message" : "INVALID_KEY"}, status=400)
+
+
+
 # 대학교 정보
 class UniversityView(APIView):
     def get(self, request, *args, **kwargs):
@@ -112,8 +198,9 @@ class CollegeView(APIView):
 # 학과정보  
 class MajorView(APIView):
     def get(self, request, *args, **kwargs):
+        university = University.objects.get(pk=kwargs['university_id'])
         college = College.objects.get(pk=kwargs['college_id'])
-        major = Major.objects.filter(college=college)
+        major = Major.objects.filter(university=university,college=college)
         serializer = MajorSerializer(major, many=True)
         return Response(serializer.data)
 

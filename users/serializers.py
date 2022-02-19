@@ -1,3 +1,5 @@
+from base64 import urlsafe_b64decode
+from urllib import request
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 # from django.contrib.auth.models import User
@@ -77,12 +79,16 @@ class LoginUserSerializer(serializers.Serializer):
 
 # user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    university = serializers.ReadOnlyField(source="user.university_id", read_only=True)
-    college = serializers.ReadOnlyField(source="user.college_id", read_only=True)
-    major = serializers.ReadOnlyField(source="user.major_id", read_only=True)
+    user = UserSerializer(read_only=True)
+    
     class Meta:
         model = Profile
         fields = '__all__'
+    
+    def validate_email(self, value):
+        if Profile.objects.filter(school_email=value).exists():
+            raise serializers.ValidationError("email is already validated")
+        return value
 
 
 class RoomSerializer(serializers.ModelSerializer):

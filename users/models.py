@@ -29,7 +29,7 @@ class College(models.Model):
 
 # # 학과 정보
 class Major(models.Model):
-    university = models.ForeignKey(College, on_delete=models.CASCADE, related_name="universities", db_column="university")
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="universities", db_column="university")
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="colleges", db_column="college")
     major = models.CharField(max_length=32)
 
@@ -112,6 +112,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=80)
     phone_auth = models.IntegerField(null=True)
+    # university = models.ForeignKey(University, on_delete=models.CASCADE, null=True)
+    # college = models.ForeignKey(College, on_delete=models.CASCADE, null=True)
+    # major = models.ForeignKey(Major, on_delete=models.CASCADE, null=True)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
