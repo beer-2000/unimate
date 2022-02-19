@@ -153,20 +153,46 @@ class RoomCreateAPI(APIView):
             return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 방 목록 - 최신순 정렬(기본)
+#방 목록 - 최신순 정렬(기본)
 class RoomListAPI(generics.ListAPIView):
     queryset = Room.objects.all().order_by('-created_at')
     serializer_class = RoomSerializer
 
 
-# 'editing' 추천 기능(방과 프로필 비교) 작성 중
+#방 정보
+class RoomDetailAPI(APIView):
+    def get(self, request, pk, format=None):
+        room = Room.objects.get(pk=pk)
+        serializer = RoomSerializer(room)
+        return Response(serializer.data)
+
+
+#'editing' 추천 기능(방과 프로필 비교) 작성 중
 class RoomRecommendAPI(APIView):
+
     def get(self, request, format=None):
-        allroom = Room.objects.all().order_by('-created_at')
-        room = allroom[0]
         profile = Profile.objects.get(user_id=request.user.id)
+        allroom = Room.objects.all().order_by('-created_at')
+        recommend_list = []
+        recommend_count = 0
+        for i in range(len(allroom)):
+            room = allroom[i]
+            if compare_total(room, profile):
+                recommend_list.append(room)
+                recommend_count += 1
+            if recommend_count == 5:
+                break
+        serializer = RoomWithoutownerSerializer(recommend_list, many=True)
+        return Response(serializer.data)
+
+
+                
+            
+
+        room = allroom[0]
+        
         #print(compare_mbti(room.mbti, profile.mbti))
-        print(room, profile, compare_interest(room.interest, profile.interest_list))
+        #print(room, profile, compare_interest(room.interest, profile.interest_list))
         return Response(status=status.HTTP_200_OK)
 
 
@@ -198,9 +224,18 @@ class RoomEntranceAPI(APIView):
     def post(self, request, pk):
         room = self.get_object(pk)
         person = User.objects.get(pk=request.user.id)
-        room.owner.add(person)
-        body = {"message": "Entrance complete"}
-        return Response(body, status=status.HTTP_200_OK)
+        profile = person.profile
+        #입장 가능 여부 확인
+        enter, message = compare_total(room, profile)
+        if not enter:
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        elif person in room.owner.all():
+            body = {"message": "Already entered"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            room.owner.add(person)
+            body = {"message": "Entrance complete"}
+            return Response(body, status=status.HTTP_200_OK)
 
 
 # 방 퇴장

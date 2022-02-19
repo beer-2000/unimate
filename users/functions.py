@@ -1,13 +1,52 @@
 from ast import literal_eval
+from rest_framework import status
+from rest_framework.response import Response
 
 
-
+#방 입장 조건 비교 (각각 True or False 반환)
 class RoomEnterPosible:
-    
+    #초기값 세팅
     def __init__(self, room, profile):
         self.room = room
         self.profile = profile
-    
+    #logic1
+    def compare_university(self):
+        room_university = self.room.university
+        profile_university = str(self.profile.user.university)
+        print("university 비교 결과")
+        print(f"방:{room_university} 사용자:{profile_university}")
+        return room_university == profile_university
+    #logic2
+    def compare_open(self):
+        return self.room.room_open == 'open'
+    #logic3
+    def compare_heads(self):
+        room_heads_limit = self.room.heads_limit
+        room_now_heads = len(self.room.owner.all())
+        print("heads(인원)제한 확인 결과")
+        print(f"수용 가능 인원: {room_heads_limit}, 현재 인원: {room_now_heads}")
+        return room_now_heads < room_heads_limit
+    #logic4
+    def compare_grade(self):
+        room_grade = self.room.grade_limit
+        print("grade 비교 결과")
+        if room_grade == None:
+            print("방에 학년 제한이 없습니다.")
+            return True
+        profile_grade = self.profile.grade
+        print(f"방:{room_grade} 사용자:{profile_grade}")
+        return room_grade == profile_grade
+    #logic5
+    def compare_gender(self):
+        room_gender = self.room.gender_limit
+        print("gender 비교 결과")
+        if room_gender == "N":
+            print("방에 성별 제한이 없습니다.")
+            return True
+        profile_gender = self.profile.gender
+        print(f"방:{room_gender} 사용자:{profile_gender}")
+        return room_gender == profile_gender
+    #logic6-1
     def compare_mbti(self):
         room_mbti = literal_eval(self.room.mbti)
         profile_mbti = literal_eval(self.profile.mbti)
@@ -21,13 +60,14 @@ class RoomEnterPosible:
                 print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
                 count_mbti = count_mbti+1
         return count_mbti == 0
-
+    #logic6-2
     def compare_interest(self):
         room_interest = self.room.interest
         profile_interest = literal_eval(self.profile.interest_list)
         print("interest 비교 결과")
+        print(f"방:{room_interest} 사용자:{profile_interest}")
         return room_interest in profile_interest
-    
+    #logic6-3
     def compare_college(self):
         room_college = self.room.college
         profile_college = str(self.profile.user.college)
@@ -35,89 +75,46 @@ class RoomEnterPosible:
         print(f"방:{room_college} 사용자:{profile_college}")
         return room_college == profile_college
 
-    def compare_university(self):
-        room_university = self.room.university
-        profile_university = str(self.profile.user.university)
-        print("college 비교 결과")
-        print(f"방:{room_university} 사용자:{profile_university}")
-        return room_university == profile_university
-    
-    def compare_grade(self):
-        room_grade = self.room.grade_limit
-        print("grade 비교 결과")
-        if room_grade == None:
-            print("방에 학년 제한이 없습니다.")
-            return True
-        profile_grade = self.profile.grade
-        print(f"방:{room_grade} 사용자:{profile_grade}")
-        return room_grade == profile_grade
-    
-    def compare_heads(self):
-        room_heads_limit = self.room.heads_limit
-        room_now_heads = len(self.room.owner.all())
-        print("heads(인원)제한 확인 결과")
-        print(f"수용 가능 인원: {room_heads_limit}, 현재 인원: {room_now_heads}")
-        return room_now_heads < room_heads_limit
-        
-        
-
-
-    
-    
-    
-
-
-
-
-
-# MBTI 비교 (방 <--> 프로필)
-# def compare_mbti(room_mbti, profile_mbti):
-#     room = literal_eval(room_mbti)
-#     profile = literal_eval(profile_mbti)
-#     count_mbti = 0
-#     for i in range(4):
-#         if (room[i] == 'O') | (room[i] == profile[i]):
-#             pass
-#         else:
-#             count_mbti = count_mbti+1
-#     if count_mbti == 0:
-#         return True
-#     else:
-#         return False
-
-def compare_mbti(room, profile):
-    room_mbti = literal_eval(room.mbti)
-    profile_mbti = literal_eval(profile.mbti)
-    count_mbti = 0
-    for i in range(4):
-        if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
-            pass
+#방 입장 가능 여부 확인
+#True or False, message(body) 반환
+def compare_total(room, profile):
+    var = RoomEnterPosible(room, profile)
+    if not var.compare_university():
+        body = {"message": "Different university"}
+        return False, body
+    elif not var.compare_open():
+        body = {"message": "Not open"}
+        return False, body
+    elif not var.compare_heads():
+        body = {"message": "The room is already full"}
+        return False, body
+    elif not var.compare_grade():
+        body = {"message": "Grade limit"}
+        return False, body
+    elif not var.compare_gender():
+        body = {"message": "Gender limit"}
+        return False, body
+    elif room.common == '':
+        print("common is blank")
+        body = {"message": "Entrance OK"}
+        return True, body
+    elif room.common == 'mbti':
+        if not var.compare_mbti():
+            body = {"message": "Common-MBTI limit"}
+            return False, body
         else:
-            count_mbti = count_mbti+1
-    if count_mbti == 0:
-        return True
-    else:
-        return False
-
-
-
-
-
-def compare_interest(room_interest, profile_interest):
-    profile = literal_eval(profile_interest)
-    if room_interest in profile:
-        return True
-    else:
-        return False
-
-
-
-
-# class RoomRecommendAPI(APIView):
-#     def get(self, request, format=None):
-#         allroom = Room.objects.all().order_by('-created_at')
-#         room = allroom[1]
-#         print(room)
-#         profile = Profile.objects.get(user_id=request.user.id)
-#         print(compare_mbti(room.mbti, profile.mbti))
-#         return Response(status=status.HTTP_200_OK)
+            print("common OK")
+            body = {"message": "Entrance OK"}
+            return True, body
+    elif room.common == 'interest':
+        if not var.compare_interest():
+            body = {"message": "Common-Interest limit"}
+            return False, body
+        else:
+            print("common OK")
+            body = {"message": "Entrance OK"}
+            return True, body
+    elif room.common == 'college':
+        if not var.compare_college():
+            body = {"message": "Common-College limit"}
+            return False, body

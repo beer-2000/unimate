@@ -189,6 +189,10 @@ class RoomUser(models.Model):
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'room_users'
+        #중복 입장을 방지
+        unique_together = (
+            ('user', 'room'),
+        )
 
 ### many-to-many 저장하는 방법(python)
 # room1 = Room.objects.get(pk=1) --> room1 객체에 Room의 행 1개를 저장
