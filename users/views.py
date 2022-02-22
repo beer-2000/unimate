@@ -1,5 +1,4 @@
 import json
-from typing import Type
 from django.http import JsonResponse, HttpResponse
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -92,44 +91,23 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
 
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        try:
-            email = request.data["school_email"]
-            user = Profile.objects.get(school_email = email)
-            current_site = get_current_site(request)
-            domain = current_site.domain
-            uid = urlsafe_base64_encode(force_bytes(Profile.user_id))
-            token = account_activation_token(user)
-            message_data = message(domain, uid, token)
-
-            mail_title = "학교 이메일 인증을 완료해주세요."
-            mail_to = email
-            email = EmailMessage(mail_title, message_data, to=[mail_to])
-            email.send()
-
-            return JsonResponse({"message" : "SUCCESS"}, status=200)
-        except ValidationError:
-            return JsonResponse({"error" : "VALIDATION_ERROR"}, status=400)
-        except KeyError:
-            return JsonResponse({"error" : "KEY_ERROR"}, status=400)
-        except TypeError:
-            return JsonResponse({"error" : "TYPE_ERROR"}, status=400)
-
 
 class EmailAuthView(APIView):
-    def post(self, request):
-        data = json.loads(request.body)
-        print(data)
+    lookup_field = "user_id"
+    serializer_class = EmailSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
         try:
-            email = request.data["school_email"]
-            user = Profile.objects.get(school_email = email)
+            email = data["school_email"]
+            profile = Profile.objects.get(school_email = email)
+            profile_id = profile.user_id
+            user = User.objects.get(pk=profile_id)
+
             current_site = get_current_site(request)
             domain = current_site.domain
-            uid = urlsafe_base64_encode(force_bytes(Profile.user_id))
-            token = account_activation_token(user)
+            uid = urlsafe_base64_encode(force_bytes(profile_id))
+            token = account_activation_token.make_token(user)
             message_data = message(domain, uid, token)
 
             mail_title = "학교 이메일 인증을 완료해주세요."
@@ -144,20 +122,17 @@ class EmailAuthView(APIView):
             return JsonResponse({"error" : "KEY_ERROR"}, status=400)
         except TypeError:
             return JsonResponse({"error" : "TYPE_ERROR"}, status=400)
-
-
-
 
 
 class Activate(APIView):
     def get(self, request, uidb64, token):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
-            profile = Profile.objects.get(pk=uid)
+            user = User.objects.get(pk=uid)
             
-            if account_activation_token.check_token(profile, token):
-                profile.school_auth_status = 'Y'
-                profile.save() 
+            if account_activation_token.check_token(user, token):
+                user.profile.school_auth_status = 'Y'
+                user.save() 
                 # return redirect(EMAIL['REDIRECT_PAGE'])
                 return Response('이메일 인증이 완료되었습니다.', status=status.HTTP_200_OK)
             return JsonResponse({"message" : "AUTH FAIL"}, status=400) 

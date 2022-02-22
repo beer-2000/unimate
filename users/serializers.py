@@ -50,6 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         represent = dict()
+        represent['id'] = instance.id
         represent['username'] = instance.username
         represent['university'] = instance.university.university
         represent['college'] = instance.college.college
@@ -70,7 +71,6 @@ class LoginUserSerializer(serializers.Serializer):
             "Unable to log in with provided credentials.")
 
 
-
 # class ProfileSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Profile
@@ -89,6 +89,12 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         if Profile.objects.filter(school_email=value).exists():
             raise serializers.ValidationError("email is already validated")
         return value
+
+class EmailSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Profile
+        fields = ("id", "school_email", "user",)
 
 
 class RoomSerializer(serializers.ModelSerializer):
