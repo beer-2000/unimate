@@ -24,3 +24,6 @@ admin.site.register(RoomUser)
 admin.site.register(University)
 admin.site.register(College)
 admin.site.register(Major)
+
+admin.site.register(Meet)
+admin.site.register(MeetUser)

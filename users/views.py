@@ -383,28 +383,52 @@ class RoomFilterAPI(APIView):
                     elif compare.compare_college():
                         room4.append(target)
             print(room4)
-            return Response(status=status.HTTP_200_OK)
-            
+            output_serializer = RoomWithoutownerSerializer(room4, many=True)
+            return Response(output_serializer.data)
 
 
-# class RoomCreateAPI(APIView):
-#     serializer_class = RoomSerializer
+class MeetCreateAPI(APIView):
+    serializer_class = MeetSerializer
     
-#     def post(self, request):
-#         room_serializer = RoomSerializer(data=request.data)
-#         if room_serializer.is_valid():
-#             room_serializer.save()
-#             #입장시키기
-#             print(room_serializer.data['id'])
-#             print(request.user.id)
-#             person = User.objects.get(pk=request.user.id)
-#             room = Room.objects.get(pk=room_serializer.data['id'])
-#             room.owner.add(person)
-#             #university 불러와서 저장
-#             room.university = str(request.user.university)
-#             room.save()
-#             # print(request.user.university)
-#             # print(room.owner, room.university)
-#             return Response(room_serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        meet_serializer = MeetSerializer(data=request.data)
+        if meet_serializer.is_valid():
+            meet_serializer.save()
+            #입장시키기
+            print(meet_serializer.data['id'])
+            print(request.user.id)
+            person = User.objects.get(pk=request.user.id)
+            meet = Meet.objects.get(pk=meet_serializer.data['id'])
+            meet.owner.add(person)
+            meet.save()
+            serializer = MeetSerializer(meet)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(meet_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeetDetailAPI(APIView):
+    def get(self, request, pk, format=None):
+        meet = Meet.objects.get(pk=pk)
+        serializer = MeetSerializer(meet)
+        return Response(serializer.data)
+
+
+#약속 참여
+class MeetEntranceAPI(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(Meet, pk=pk)
+
+    def get(self, request, pk, format=None):
+        print(request.user.id)
+        meet = self.get_object(pk)
+        serializer = MeetSerializer(meet)
+        return Response(serializer.data)
+    # 입장하기 (토큰 주인 대상)
+    def post(self, request, pk):
+        meet = self.get_object(pk)
+        person = User.objects.get(pk=request.user.id)
+        profile = person.profile
+        meet.owner.add(person)
+        body = {"message": "Entrance complete"}
+        return Response(body, status=status.HTTP_200_OK)

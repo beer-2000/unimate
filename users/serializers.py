@@ -111,9 +111,22 @@ class RoomWithoutownerSerializer(serializers.ModelSerializer):
                 "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")
 
 
-#필터 구현중
 class FilterSerializer(serializers.Serializer):
     room_type = serializers.IntegerField(allow_null=True)
     grade = serializers.IntegerField(allow_null=True)
     gender = serializers.CharField(allow_null=True)
     common = serializers.CharField(allow_null=True)
+
+
+class MeetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meet
+        fields = '__all__'
+
+
+# MeetSerializer - "owner"
+class MeetWithoutownerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meet
+        fields = ("id", "created_at", "room_type", "title", "grade_limit", "heads_limit", "gender_limit",
+                "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")

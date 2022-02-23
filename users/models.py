@@ -202,3 +202,26 @@ class RoomUser(models.Model):
 # person1 = User.objects.get(pk=1) --> person1 객체에 User의 행 1개를 저장
 # room1.owner.add(person1) --> room1과 person1ㅇ이 연결됨
 # person1.room_set.add(room1) --> person1과 room1이 연결됨 (owner는 Room에서 정의했기 때문에, person1은 room_set을 사용해야 함)
+
+
+class Meet(models.Model):
+    owner = models.ManyToManyField(User, through='MeetUser')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    purpose = models.CharField(max_length=255)
+    spot = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    meettime = models.DateTimeField()
+
+
+class MeetUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE) #user_id : User를 FK로 참조
+    meet = models.ForeignKey(Meet, on_delete=models.CASCADE) #meet_id : Meet을 FK로 참조
+    created_at = models.DateTimeField(auto_now_add=True) #방 입장 시간
+
+    class Meta: #메타 클래스를 이용하여 테이블명 지정
+        db_table = 'meet_users'
+        #중복 입장을 방지
+        unique_together = (
+            ('user', 'meet'),
+        )

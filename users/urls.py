@@ -27,4 +27,8 @@ urlpatterns = [
     path('room_entrance/<int:pk>/', RoomEntranceAPI.as_view(), name='room_entrance'),
     path('room_exit/<int:pk>/', RoomExitAPI.as_view(), name='room_exit'),
     path('participation/', ParticipationListAPI.as_view(), name='participation'),
+    #약속 관련
+    path('meet_create/', MeetCreateAPI.as_view(), name='meet_create'),
+    path('meet_detail/<int:pk>', MeetDetailAPI.as_view(), name='meet_detail'),
+    path('meet_entrance/<int:pk>/', MeetEntranceAPI.as_view(), name='meet_entrance'),
 ]
