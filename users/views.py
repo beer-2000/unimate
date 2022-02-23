@@ -319,3 +319,92 @@ class RoomExitAPI(APIView):
         return Response(body, status=status.HTTP_200_OK)
 
 
+#방 목록 - 필터
+class RoomFilterAPI(APIView):
+    serializer_class = FilterSerializer
+
+    def post(self, request):
+        filter_serializer = FilterSerializer(data=request.data)
+        if filter_serializer.is_valid():
+            room = Room.objects.all()
+            print(filter_serializer.data)
+            #방 성격
+            if filter_serializer.data['room_type'] == None:
+                room1 = room
+            else:
+                room1 = room.filter(room_type=filter_serializer.data['room_type'])
+            print(room1)
+            #학년 제한
+            if filter_serializer.data['grade'] == None:
+                room2 = room1
+            else:
+                room2 = room1.filter(grade_limit=filter_serializer.data['grade'])
+            print(room2)
+            #성별 제한
+            if filter_serializer.data['gender'] == None:
+                room3 = room2
+            else:
+                room3 = room2.filter(gender_limit=filter_serializer.data['gender'])
+            print(room3)
+            #공통점
+            if filter_serializer.data['common'] == None:
+                room4 = room3
+            #공통점 - mbti
+            elif filter_serializer.data['common'] == 'mbti':
+                profile = Profile.objects.get(user_id=request.user.id)
+                room4 = []
+                for i in range(len(room3)):
+                    target = room3[i]
+                    compare = RoomEnterPosible(target, profile)
+                    if target.mbti == '':
+                        pass
+                    elif compare.compare_mbti():
+                        room4.append(target)
+            #공통점 - interest
+            elif filter_serializer.data['common'] == 'interest':
+                profile = Profile.objects.get(user_id=request.user.id)
+                room4 = []
+                for i in range(len(room3)):
+                    target = room3[i]
+                    compare = RoomEnterPosible(target, profile)
+                    if target.interest == None:
+                        pass
+                    elif compare.compare_interest():
+                        room4.append(target)
+            #공통점 - college
+            elif filter_serializer.data['common'] == 'college':
+                profile = Profile.objects.get(user_id=request.user.id)
+                room4 = []
+                for i in range(len(room3)):
+                    target = room3[i]
+                    compare = RoomEnterPosible(target, profile)
+                    if target.college == '':
+                        pass
+                    elif compare.compare_college():
+                        room4.append(target)
+            print(room4)
+            return Response(status=status.HTTP_200_OK)
+            
+
+
+# class RoomCreateAPI(APIView):
+#     serializer_class = RoomSerializer
+    
+#     def post(self, request):
+#         room_serializer = RoomSerializer(data=request.data)
+#         if room_serializer.is_valid():
+#             room_serializer.save()
+#             #입장시키기
+#             print(room_serializer.data['id'])
+#             print(request.user.id)
+#             person = User.objects.get(pk=request.user.id)
+#             room = Room.objects.get(pk=room_serializer.data['id'])
+#             room.owner.add(person)
+#             #university 불러와서 저장
+#             room.university = str(request.user.university)
+#             room.save()
+#             # print(request.user.university)
+#             # print(room.owner, room.university)
+#             return Response(room_serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

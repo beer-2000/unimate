@@ -21,6 +21,7 @@ urlpatterns = [
     #방 관련
     path('room_create/', RoomCreateAPI.as_view(), name='room_create'),
     path('room_list/', RoomListAPI.as_view(), name='room_list'),
+    path('room_filter/', RoomFilterAPI.as_view(), name='room_filter'),
     path('room_detail/<int:pk>', RoomDetailAPI.as_view(), name='room_detail'),
     path('room_recommend/', RoomRecommendAPI.as_view(), name='room_recommend'),
     path('room_entrance/<int:pk>/', RoomEntranceAPI.as_view(), name='room_entrance'),
