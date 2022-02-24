@@ -432,3 +432,29 @@ class MeetEntranceAPI(APIView):
         meet.owner.add(person)
         body = {"message": "Entrance complete"}
         return Response(body, status=status.HTTP_200_OK)
+
+
+# 약속 퇴장
+class MeetExitAPI(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(Meet, pk=pk)
+
+    def get(self, request, pk, format=None):
+        print(request.user.id)
+        meet = self.get_object(pk)
+        serializer = MeetSerializer(meet)
+        return Response(serializer.data)
+    # 퇴장하기 (토큰 주인 대상)
+    def post(self, request, pk):
+        meet = self.get_object(pk)
+        meetuser = MeetUser.objects.filter(meet_id=meet.id, user_id=request.user.id)
+        meetuser.delete()
+        body = {"message": "Exit complete"}
+        return Response(body, status=status.HTTP_200_OK)
+
+#약속 내역 - room_id == id 인 방에 종속된 약속 list
+class MeetListAPI(APIView):
+    def get(self, requets, id, format=None):
+        meet = Meet.objects.filter(room_id=id)
+        serializer = MeetSerializer(meet, many=True)
+        return Response(serializer.data)
