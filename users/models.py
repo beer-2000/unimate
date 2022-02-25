@@ -207,11 +207,11 @@ class RoomUser(models.Model):
 class Meet(models.Model):
     owner = models.ManyToManyField(User, through='MeetUser')
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    purpose = models.CharField(max_length=255)
-    spot = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-    meettime = models.DateTimeField()
+    title = models.CharField(max_length=255, blank=True)
+    purpose = models.CharField(max_length=255, blank=True)
+    spot = models.CharField(max_length=255, blank=True)
+    description = models.CharField(max_length=255, blank=True)
+    meettime = models.DateTimeField(null=True, blank=True)
 
 
 class MeetUser(models.Model):

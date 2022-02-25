@@ -19,6 +19,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.core.mail import EmailMessage
 from django.utils.encoding import force_bytes, force_str
+from django.db.models import Q
 
 
 
@@ -326,7 +327,7 @@ class RoomFilterAPI(APIView):
     def post(self, request):
         filter_serializer = FilterSerializer(data=request.data)
         if filter_serializer.is_valid():
-            room = Room.objects.all()
+            room = Room.objects.all().order_by('-created_at')
             print(filter_serializer.data)
             #방 성격
             if filter_serializer.data['room_type'] == None:
@@ -383,8 +384,28 @@ class RoomFilterAPI(APIView):
                     elif compare.compare_college():
                         room4.append(target)
             print(room4)
+            print(type(room4))
             output_serializer = RoomWithoutownerSerializer(room4, many=True)
             return Response(output_serializer.data)
+
+
+#방 검색
+class RoomSearchAPI(APIView):
+    serializer_class = SearchSerializer
+
+    def post(self, request, format=None):
+        search_serializer = SearchSerializer(data=request.data)
+        if search_serializer.is_valid():
+            keyword = search_serializer.data['keyword']
+            room = Room.objects.filter(
+                Q(title__icontains=keyword) |
+                Q(room_description__icontains=keyword)
+            ).order_by('-created_at')
+            serializer = RoomWithoutownerSerializer(room, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(search_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class MeetCreateAPI(APIView):
@@ -455,6 +476,6 @@ class MeetExitAPI(APIView):
 #약속 내역 - room_id == id 인 방에 종속된 약속 list
 class MeetListAPI(APIView):
     def get(self, requets, id, format=None):
-        meet = Meet.objects.filter(room_id=id)
+        meet = Meet.objects.filter(room_id=id).order_by('-created_at')
         serializer = MeetSerializer(meet, many=True)
         return Response(serializer.data)

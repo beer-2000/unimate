@@ -118,6 +118,10 @@ class FilterSerializer(serializers.Serializer):
     common = serializers.CharField(allow_null=True)
 
 
+class SearchSerializer(serializers.Serializer):
+    keyword = serializers.CharField()
+
+
 class MeetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meet
