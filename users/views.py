@@ -23,7 +23,6 @@ from django.db.models import Q
 
 
 
-
 # Create your views here.
 @api_view(['GET'])
 def HelloUser(request):
@@ -384,7 +383,6 @@ class RoomFilterAPI(APIView):
                     elif compare.compare_college():
                         room4.append(target)
             print(room4)
-            print(type(room4))
             output_serializer = RoomWithoutownerSerializer(room4, many=True)
             return Response(output_serializer.data)
 
@@ -405,7 +403,6 @@ class RoomSearchAPI(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(search_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class MeetCreateAPI(APIView):
@@ -473,9 +470,11 @@ class MeetExitAPI(APIView):
         body = {"message": "Exit complete"}
         return Response(body, status=status.HTTP_200_OK)
 
+
 #약속 내역 - room_id == id 인 방에 종속된 약속 list
 class MeetListAPI(APIView):
     def get(self, requets, id, format=None):
+        meet = Meet.objects.filter(room_id=id)
         meet = Meet.objects.filter(room_id=id).order_by('-created_at')
         serializer = MeetSerializer(meet, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data) 
