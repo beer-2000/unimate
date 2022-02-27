@@ -48,21 +48,18 @@ class RoomEnterPosible:
         return room_gender == profile_gender
     #logic6-1
     def compare_mbti(self):
-        if self.room.mbti == None:
-            pass
-        else:
-            room_mbti = literal_eval(self.room.mbti)
-            profile_mbti = literal_eval(self.profile.mbti)
-            count_mbti = 0
-            print("mbti 비교 결과")
-            for i in range(4):
-                if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
-                    print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
-                    #pass
-                else:
-                    print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
-                    count_mbti = count_mbti+1
-            return count_mbti == 0
+        room_mbti = literal_eval(self.room.mbti)
+        profile_mbti = literal_eval(self.profile.mbti)
+        count_mbti = 0
+        print("mbti 비교 결과")
+        for i in range(4):
+            if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
+                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
+                #pass
+            else:
+                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
+                count_mbti = count_mbti+1
+        return count_mbti == 0
     #logic6-2
     def compare_interest(self):
         room_interest = self.room.interest

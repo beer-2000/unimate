@@ -142,6 +142,22 @@ class Activate(APIView):
             return JsonResponse({"message" : "INVALID_KEY"}, status=400)
 
 
+#ID 찾기
+class FindIDAPI(APIView):
+    serializer_class = FindIDSerializer
+    def post(self, request, format=None):
+        email_serializer = FindIDSerializer(data=request.data)
+        if email_serializer.is_valid:
+            print(request.data['email'])
+            if request.data['email'] == request.user.email:
+                serializer = UsernameSerializer(request.user)
+                return Response(serializer.data)
+            else:
+                body = {"message": "Unregistered email"}
+                return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
 
 # 대학교 정보
 class UniversityView(APIView):

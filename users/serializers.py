@@ -96,6 +96,17 @@ class EmailSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ("id", "school_email", "user",)
 
+#ID 찾기
+class FindIDSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+#ID 찾기 - ID 보여주기
+class UsernameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("username",)
+
 
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
