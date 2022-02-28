@@ -11,12 +11,9 @@ urlpatterns = [
     # email 인증
     path("email/<int:user_id>/", EmailAuthView.as_view(), name='email'),
     path("activate/<str:uidb64>/<str:token>", Activate.as_view(), name='activate'),
-<<<<<<< HEAD
     path("findid/", FindIDAPI.as_view(), name='findid'),
-=======
     # phone 인증
     path("phone/"),
->>>>>>> jeje
     #user_pk : User 테이블의 pk인 'id' 참조
     #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
     #path("profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
