@@ -11,9 +11,14 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = "profile"
 
+class SMSInline(admin.StackedInline):
+    model = SMSAuthRequest
+    can_delete = False
+    verbose_name_plural = "sms"
+
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (ProfileInline,)
+    inlines = (ProfileInline, SMSInline,)
 
 
 admin.site.register(User, UserAdmin)

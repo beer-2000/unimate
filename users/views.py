@@ -1,3 +1,5 @@
+from cgitb import lookup
+from genericpath import exists
 import json
 from django.http import JsonResponse, HttpResponse
 
@@ -7,12 +9,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from knox.models import AuthToken
+from unimate.my_settings import SMS
 from users.serializers import *
 from users.models import *
 from users.functions import *
 
 from .email import message
-from .token import account_activation_token
+from .utils import account_activation_token
 from django.core.exceptions import ValidationError 
 from django.core.validators import validate_email
 from django.contrib.sites.shortcuts import get_current_site
@@ -92,6 +95,7 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProfileDetailSerializer
 
 
+# 이메일 인증
 class EmailAuthView(APIView):
     lookup_field = "user_id"
     serializer_class = EmailSerializer
@@ -123,8 +127,8 @@ class EmailAuthView(APIView):
         except TypeError:
             return JsonResponse({"error" : "TYPE_ERROR"}, status=400)
 
-
-class Activate(APIView):
+# 이메일 인증 확인
+class EmailActivate(APIView):
     def get(self, request, uidb64, token):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -141,6 +145,85 @@ class Activate(APIView):
         except KeyError: 
             return JsonResponse({"message" : "INVALID_KEY"}, status=400)
 
+#SMS 보내기
+class SMSVerificationView(APIView):
+    lookup_field = "user_id"
+    serializer_class = SMSSerializer
+
+    def send_verification(self, phone, code):
+        SMS_URL = 'https://sens.apigw.ntruss.com/sms/v2/services/' + my_settings.SMS['uri'] + '/messages'
+        timestamp = str(int(time.time() * 1000))
+        secret_key = bytes(my_settings.SMS['secret_key'], 'utf-8')
+
+        method = 'POST'
+        uri = '/sms/v2/services/' + my_settings.SMS['uri'] + '/messages'
+        message = method + ' ' + uri + '\n' + timestamp + '\n' + my_settings.SMS['access_key']
+
+        message = bytes(message, 'utf-8')
+
+				
+        # 알고리즘으로 암호화 후, base64로 인코딩
+        signingKey = base64.b64encode(
+            hmac.new(secret_key, message, digestmod=hashlib.sha256).digest())
+
+        headers = {
+            'Content-Type': 'application/json; charset=utf-8',
+            'x-ncp-apigw-timestamp': timestamp,
+            'x-ncp-iam-access-key': my_settings.SMS['access_key'],
+            'x-ncp-apigw-signature-v2': signingKey,
+        }
+
+        body = {
+            'type': 'SMS',
+            'contentType': 'COMM',
+            'countryCode': '82',
+            'from': my_settings.SMS['from'],
+            'content': f'안녕하세요. unimate 입니다. 인증번호 [{code}]를 입력해주세요.',
+            'messages': [
+                {
+                    'to': phone
+                }
+            ]
+        }
+
+# body를 json으로 변환
+        encoded_data = json.dumps(body)
+		
+# post 메서드로 데이터를 보냄
+        res = requests.post(SMS_URL, headers=headers, data=encoded_data)
+        return HttpResponse(res.status_code)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # print(request.user.id)
+            user = User.objects.get(pk=kwargs['user_id'])
+            phone_info = SMSAuthRequest.objects.filter(user_id=user).values('user_id')[0]
+            user_id = phone_info['user_id']
+            data = request.data
+            phone = data['phone_number']
+
+            code = str(randint(100000, 999999))
+
+			#update(조건, defaults = 생성할 데이터 값)
+            SMSAuthRequest.objects.update(
+                phone_number=phone,
+                auth_number=code
+            )
+						
+	        # phone, code 를 인자로 send_verification 메서드를 호출
+            self.send_verification(
+                phone=phone,
+                code=code
+            )
+            return JsonResponse({'message': 'SUCCESS'}, status=201)
+
+
+        except KeyError as e:
+            return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
+
+        except ValueError as e:
+            return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+        
 
 #ID 찾기
 class FindIDAPI(APIView):
@@ -174,18 +257,6 @@ class CollegeView(APIView):
         serializer = CollegeSerializer(college, many=True)
         return Response(serializer.data)
 
-
-# class AllCollegeView(APIView):
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-
-#         if user == None or user.is_anonymous:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         college = College.objects.all()
-#         serializer = serializers.CollegeSerializer(college, many=True)
-#         return Response(serializer.data)
-
 # 학과정보  
 class MajorView(APIView):
     def get(self, request, *args, **kwargs):
@@ -194,18 +265,6 @@ class MajorView(APIView):
         major = Major.objects.filter(university=university,college=college)
         serializer = MajorSerializer(major, many=True)
         return Response(serializer.data)
-
-
-# class AllMajorView(APIView):
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-
-#         if user == None or user.is_anonymous:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-
-#         major = Major.objects.all()
-#         serializer = serializers.MajorSerializer(major, many=True)
-#         return Response(serializer.data)
 
 
 class RoomCreateAPI(APIView):
@@ -262,10 +321,6 @@ class RoomRecommendAPI(APIView):
                 break
         serializer = RoomWithoutownerSerializer(recommend_list, many=True)
         return Response(serializer.data)
-
-
-                
-            
 
         room = allroom[0]
         

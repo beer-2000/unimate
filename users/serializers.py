@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64decode
+import profile
 from urllib import request
 from rest_framework import serializers
 from django.contrib.auth import authenticate
@@ -77,7 +78,6 @@ class LoginUserSerializer(serializers.Serializer):
 #         fields = ("nickname", "introducing",)
 
 
-# user, 학교 정보 연결 후 , "school_info", "university", "college", "major" 추가
 class ProfileDetailSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     
@@ -90,6 +90,23 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("email is already validated")
         return value
 
+
+class SMSSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = SMSAuthRequest
+        fields = ("id", "phone_number", "user",)
+
+class SMSActivateSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = SMSAuthRequest
+        fields = ("id", "auth_number", "user",)
+
+
+# 이메일 인증
 class EmailSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:

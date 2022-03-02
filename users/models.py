@@ -1,8 +1,19 @@
-from multiprocessing.sharedctypes import Value
+from random import randint
+import time
+import hmac
+import base64
+import hashlib
+import requests
+import json
+import datetime
+
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from model_utils.models import TimeStampedModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from unimate import my_settings
 
 # Create your models here.
 # 대학교 정보
@@ -110,11 +121,8 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=80)
-    phone_auth = models.IntegerField(null=True)
-    # university = models.ForeignKey(University, on_delete=models.CASCADE, null=True)
-    # college = models.ForeignKey(College, on_delete=models.CASCADE, null=True)
-    # major = models.ForeignKey(Major, on_delete=models.CASCADE, null=True)
+    # phone_number = models.CharField(max_length=80, blank=True, null=True)
+    # phone_auth = models.IntegerField(null=True)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
@@ -131,8 +139,6 @@ class Profile(models.Model):
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'
 
-
-
 # User의 Post가 save되면 그것을 참조하는 Profile 객체를 만들어 저장하라는 명령
 # * 이해 필요
 @receiver(post_save, sender=User)
@@ -145,6 +151,25 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+class SMSAuthRequest(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(verbose_name='휴대폰 번호', max_length=50)
+    auth_number = models.IntegerField(verbose_name='인증 번호', null=True)
+
+    class Meta:
+        db_table = 'sms'
+
+@receiver(post_save, sender=User)
+def create_user_sms(sender, instance, created, **kwargs):
+    print(f"sender: {sender}, instance: {instance}, created: {created}")
+    if created:
+        SMSAuthRequest.objects.create(user=instance, user_id=instance.id)
+
+@receiver(post_save, sender=User)
+def save_user_sms(sender, instance, **kwargs):
+    instance.smsauthrequest.save()
 
 
 ### Room : 방 정보를 저장하는 테이블로, Profile과 many-to-many관계, 중간테이블로 RoomUser 생성
