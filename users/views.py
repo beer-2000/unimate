@@ -104,13 +104,13 @@ class EmailAuthView(APIView):
         data = request.data
         try:
             email = data["school_email"]
-            profile = Profile.objects.get(school_email = email)
-            profile_id = profile.user_id
-            user = User.objects.get(pk=profile_id)
+            user = User.objects.get(pk=kwargs['user_id'])
+            user_id = user.id
+            SchoolEmail.objects.filter(user_id=user).update(school_email=email)
 
             current_site = get_current_site(request)
             domain = current_site.domain
-            uid = urlsafe_base64_encode(force_bytes(profile_id))
+            uid = urlsafe_base64_encode(force_bytes(user_id))
             token = account_activation_token.make_token(user)
             message_data = message(domain, uid, token)
 
@@ -118,7 +118,7 @@ class EmailAuthView(APIView):
             mail_to = email
             email = EmailMessage(mail_title, message_data, to=[mail_to])
             email.send()
-
+            
             return JsonResponse({"message" : "SUCCESS"}, status=200)
         except ValidationError:
             return JsonResponse({"error" : "VALIDATION_ERROR"}, status=400)
@@ -133,9 +133,11 @@ class EmailActivate(APIView):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
+            email = SchoolEmail.objects.get(user_id=user).school_email
             
             if account_activation_token.check_token(user, token):
                 user.profile.school_auth_status = 'Y'
+                user.profile.school_email=email
                 user.save() 
                 # return redirect(EMAIL['REDIRECT_PAGE'])
                 return Response('이메일 인증이 완료되었습니다.', status=status.HTTP_200_OK)
@@ -161,7 +163,6 @@ class SMSVerificationView(APIView):
 
         message = bytes(message, 'utf-8')
 
-				
         # 알고리즘으로 암호화 후, base64로 인코딩
         signingKey = base64.b64encode(
             hmac.new(secret_key, message, digestmod=hashlib.sha256).digest())
@@ -195,17 +196,14 @@ class SMSVerificationView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            # print(request.user.id)
             user = User.objects.get(pk=kwargs['user_id'])
-            phone_info = SMSAuthRequest.objects.filter(user_id=user).values('user_id')[0]
-            user_id = phone_info['user_id']
             data = request.data
             phone = data['phone_number']
 
-            code = str(randint(100000, 999999))
+            code = randint(100000, 999999)
 
 			#update(조건, defaults = 생성할 데이터 값)
-            SMSAuthRequest.objects.update(
+            SMSAuthRequest.objects.filter(user_id=user).update(
                 phone_number=phone,
                 auth_number=code
             )
@@ -217,6 +215,40 @@ class SMSVerificationView(APIView):
             )
             return JsonResponse({'message': 'SUCCESS'}, status=201)
 
+
+        except KeyError as e:
+            return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
+
+        except ValueError as e:
+            return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+
+# 문자인증 확인과정
+class SMSVerificationConfirmView(APIView):
+    lookup_field = "user_id"
+    serializer_class = SMSActivateSerializer
+    def get(self, request, *args, **kwargs):
+        
+        user = User.objects.get(pk=kwargs['user_id'])
+        phone_info = SMSAuthRequest.objects.get(user_id=user)
+        serializer =  SMSDetailSerializer(phone_info)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = User.objects.get(pk=kwargs['user_id'])
+            phone_info = SMSAuthRequest.objects.get(user_id=user)
+            phone = phone_info.phone_number
+            data = request.data
+            verification_number = data['auth_number']
+
+            if int(verification_number) == phone_info.auth_number:
+                if not Profile.objects.filter(phone_number=phone).exists():
+                    Profile.objects.filter(user_id=user).update(phone_number=phone)
+                    return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+                else:
+                    return JsonResponse({'message': 'REGISTERED_NUMBER'}, status=401)
+            return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
 
         except KeyError as e:
             return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)

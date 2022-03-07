@@ -121,8 +121,7 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # phone_number = models.CharField(max_length=80, blank=True, null=True)
-    # phone_auth = models.IntegerField(null=True)
+    phone_number = models.CharField(max_length=80, blank=True, null=True)
     school_email = models.EmailField(max_length=254, blank=True)
     birth_of_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
@@ -152,7 +151,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
-
+# 문자 인증
 class SMSAuthRequest(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(verbose_name='휴대폰 번호', max_length=50)
@@ -170,6 +169,24 @@ def create_user_sms(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_sms(sender, instance, **kwargs):
     instance.smsauthrequest.save()
+
+# 학교 이메일 인증
+class SchoolEmail(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    school_email = models.EmailField(max_length=254, blank=True)
+
+    class Meta:
+        db_table = 'schoolemail'
+
+@receiver(post_save, sender=User)
+def create_user_eamil(sender, instance, created, **kwargs):
+    print(f"sender: {sender}, instance: {instance}, created: {created}")
+    if created:
+        SchoolEmail.objects.create(user=instance, user_id=instance.id)
+
+@receiver(post_save, sender=User)
+def save_user_email(sender, instance, **kwargs):
+    instance.schoolemail.save()
 
 
 ### Room : 방 정보를 저장하는 테이블로, Profile과 many-to-many관계, 중간테이블로 RoomUser 생성

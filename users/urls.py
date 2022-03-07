@@ -14,7 +14,7 @@ urlpatterns = [
     path("findid/", FindIDAPI.as_view(), name='findid'),
     # sms 인증
     path("sms/<int:user_id>/", SMSVerificationView.as_view(), name='sms'),
-    # path("smsactivate/<int:user_id>/", SMSCheckView.as_view(), name='sms'),
+    path("smsactivate/<int:user_id>/", SMSVerificationConfirmView.as_view(), name='sms'),
     #user_pk : User 테이블의 pk인 'id' 참조
     #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
     #path("profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
