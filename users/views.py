@@ -418,6 +418,8 @@ class RoomExitAPI(APIView):
         room = self.get_object(pk)
         roomuser = RoomUser.objects.filter(room_id=room.id, user_id=request.user.id)
         roomuser.delete()
+        if len(room.owner.all()) == 0:
+            room.delete()
         body = {"message": "Exit complete"}
         return Response(body, status=status.HTTP_200_OK)
 

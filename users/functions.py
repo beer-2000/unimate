@@ -48,18 +48,22 @@ class RoomEnterPosible:
         return room_gender == profile_gender
     #logic6-1
     def compare_mbti(self):
-        room_mbti = literal_eval(self.room.mbti)
-        profile_mbti = literal_eval(self.profile.mbti)
-        count_mbti = 0
-        print("mbti 비교 결과")
-        for i in range(4):
-            if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
-                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
-                #pass
-            else:
-                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
-                count_mbti = count_mbti+1
-        return count_mbti == 0
+        if self.profile.mbti == '':
+            print("사용자의 mbti 정보가 존재하지 않아 입장할 수 없습니다.")
+            return False
+        else:
+            room_mbti = literal_eval(self.room.mbti)
+            profile_mbti = literal_eval(self.profile.mbti)
+            count_mbti = 0
+            print("mbti 비교 결과")
+            for i in range(4):
+                if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
+                    print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
+                    #pass
+                else:
+                    print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
+                    count_mbti = count_mbti+1
+            return count_mbti == 0
     #logic6-2
     def compare_interest(self):
         room_interest = self.room.interest
@@ -121,16 +125,22 @@ def compare_total(room, profile):
 
 
 #mbti만 비교 (리스트 형태의 텍스트로 입력)
+#mbti 존재하지 않는 경우는 오류
 def mbti_check(mbti1, mbti2):
     room_mbti = literal_eval(mbti1)
     profile_mbti = literal_eval(mbti2)
-    count_mbti = 0
-    print("mbti 비교 결과")
-    for i in range(4):
-        if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
-            print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
-            #pass
-        else:
-            print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
-            count_mbti = count_mbti+1
-    return count_mbti == 0
+    if profile_mbti == '':
+        print("사용자의 mbti 정보가 존재하지 않습니다.")
+        return False
+    else:
+
+        count_mbti = 0
+        print("mbti 비교 결과")
+        for i in range(4):
+            if (room_mbti[i] == 'O') | (room_mbti[i] == profile_mbti[i]):
+                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]}")
+                #pass
+            else:
+                print(f"방:{room_mbti[i]} 사용자:{profile_mbti[i]} 이므로 입장 불가")
+                count_mbti = count_mbti+1
+        return count_mbti == 0
