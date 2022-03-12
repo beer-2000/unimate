@@ -93,6 +93,13 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("email is already validated")
         return value
 
+
+class WithdrawSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Withdraw
+        fields = ("withdraw_reason",)
+
+
 # 문자 전송
 class SMSSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

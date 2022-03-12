@@ -21,6 +21,7 @@ urlpatterns = [
     #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
     #path("profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
     path("profile/<int:user_id>/", ProfileDetailAPI.as_view()),
+    path("withdraw/", WithdrawAPI.as_view(), name='withdraw'),
     # 학교
     path('university/', UniversityView.as_view()),
     path('college/<int:university_id>/', CollegeView.as_view()),

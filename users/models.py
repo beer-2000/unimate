@@ -138,6 +138,12 @@ class Profile(models.Model):
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'
 
+
+class Withdraw(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    withdraw_reason = models.TextField(blank=True, null=True)
+
+
 # User의 Post가 save되면 그것을 참조하는 Profile 객체를 만들어 저장하라는 명령
 # * 이해 필요
 @receiver(post_save, sender=User)

@@ -95,6 +95,21 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProfileDetailSerializer
 
 
+class WithdrawAPI(APIView):
+    serializer_class = WithdrawSerializer
+
+    def post(self, request, *args, **kwargs):
+        profile = Profile.objects.get(pk=request.user.id)
+        profile.withdrawn_status = 'withdrawal'
+        profile.save()
+        Withdraw.objects.create(
+            user_id=request.user.id, withdraw_reason=request.data['withdraw_reason']
+            )
+        body = {"message": "Withdraw complete"}
+        return Response(body, status=status.HTTP_200_OK)
+
+
+
 # 이메일 인증
 class EmailAuthView(APIView):
     lookup_field = "user_id"
