@@ -12,6 +12,8 @@ urlpatterns = [
     path("email/<int:user_id>/", EmailAuthView.as_view(), name='email'),
     path("activate/<str:uidb64>/<str:token>", EmailActivate.as_view(), name='activate'),
     path("findid/", FindIDAPI.as_view(), name='findid'),
+    #PW 변경
+    path("changepw/", ChangePasswordAPI.as_view(), name='changepw'),
     # sms 인증
     path("sms/<int:user_id>/", SMSVerificationView.as_view(), name='sms'),
     path("smsactivate/<int:user_id>/", SMSVerificationConfirmView.as_view(), name='sms'),

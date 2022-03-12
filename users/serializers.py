@@ -2,10 +2,13 @@ from base64 import urlsafe_b64decode
 import profile
 from urllib import request
 from rest_framework import serializers
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, password_validation
+from django.utils.translation import gettext_lazy as _
 # from django.contrib.auth.models import User
 
 from users.models import *
+
+
 
 # 대학교
 class UniversitySerializer(serializers.ModelSerializer):
@@ -131,6 +134,34 @@ class UsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("username",)
+
+
+#PW 변경
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(max_length=128, write_only=True, required=True)
+    new_password = serializers.CharField(max_length=128, write_only=True, required=True)
+    new_password2 = serializers.CharField(max_length=128, write_only=True, required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError(
+                _('Wrong password')
+            )
+        return value
+
+    def validate(self, data):
+        if data['new_password'] != data['new_password2']:
+            raise serializers.ValidationError({'new_password2': _("Passwords didn't match")})
+        password_validation.validate_password(data['new_password'], self.context['request'].user)
+        return data
+
+    def save(self, **kwargs):
+        password = self.validated_data['new_password']
+        user = self.context['request'].user
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class RoomSerializer(serializers.ModelSerializer):

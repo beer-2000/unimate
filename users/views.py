@@ -272,7 +272,47 @@ class FindIDAPI(APIView):
                 return Response(body, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+#PW 변경
+class ChangePasswordAPI(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+
+    def update(self, request, *args, **kwargs):
+        # request를 serialize해서 self(put method)를 실행함
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # put method를 실행하고 유효성 검사 후 저장함
+        user = serializer.save()
+        # knox의 AuthToken에 user의 토큰 모두 삭제
+        AuthToken.objects.filter(user=user).delete()
+        # create and return new token
+        return Response(
+            {
+                "user": UserSerializer(
+                    user, context=self.get_serializer_context()
+                ).data,
+                "token": AuthToken.objects.create(user)[1],
+            }
+        )
+
+
+class LoginAPI(generics.GenericAPIView):
+    serializer_class = LoginUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        return Response(
+            {
+                "user": UserSerializer(
+                    user, context=self.get_serializer_context()
+                ).data,
+                "token": AuthToken.objects.create(user)[1],
+            }
+        )
+
 
 # 대학교 정보
 class UniversityView(APIView):
@@ -368,9 +408,9 @@ class RoomRecommendAPI(APIView):
 class ParticipationListAPI(APIView):
     def get(self, request, format=None):
         queryset = User.objects.filter(pk=request.user.id).prefetch_related('room_set')[0].room_set.values()
-        print(queryset)
+        #print(queryset)
         serializer = RoomWithoutownerSerializer(queryset, many=True)
-        print(serializer)
+        #print(serializer)
         #return Response(status=status.HTTP_200_OK)
         return Response(serializer.data)
 
