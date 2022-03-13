@@ -66,7 +66,8 @@ class LoginAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        user = serializer.validated_data
+        AuthToken.objects.filter(user=user).delete()
         login(request, user)
         return Response(
             {
@@ -488,23 +489,6 @@ class ResetPasswordAPI(generics.UpdateAPIView):
 #         AuthToken.objects.filter(user=user).delete()
 #         # create and return new token
 #         return Response({"user": UserSerializer(user, context=self.get_serializer_context()).data})
-
-
-class LoginAPI(generics.GenericAPIView):
-    serializer_class = LoginUserSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        return Response(
-            {
-                "user": UserSerializer(
-                    user, context=self.get_serializer_context()
-                ).data,
-                "token": AuthToken.objects.create(user)[1],
-            }
-        )
 
 
 # 대학교 정보
