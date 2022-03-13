@@ -7,7 +7,6 @@ import requests
 import json
 import datetime
 
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from model_utils.models import TimeStampedModel

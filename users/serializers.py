@@ -1,10 +1,8 @@
 from base64 import urlsafe_b64decode
-import profile
 from urllib import request
 from rest_framework import serializers
 from django.contrib.auth import authenticate, password_validation
 from django.utils.translation import gettext_lazy as _
-# from django.contrib.auth.models import User
 
 from users.models import *
 

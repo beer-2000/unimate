@@ -1,6 +1,6 @@
 import json
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +11,7 @@ from users.models import *
 from users.functions import *
 
 from .email import message
-from .utils import account_activation_token, LoginRequiredMixin
+from .utils import account_activation_token
 from django.core.exceptions import ValidationError
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
