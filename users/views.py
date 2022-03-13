@@ -93,6 +93,7 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
 
 
 class WithdrawAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = WithdrawSerializer
 
     def post(self, request, *args, **kwargs):
@@ -109,6 +110,7 @@ class WithdrawAPI(APIView):
 
 # 이메일 인증
 class EmailAuthView(APIView):
+    
     lookup_field = "user_id"
     serializer_class = EmailSerializer
 
