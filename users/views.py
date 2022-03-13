@@ -162,9 +162,9 @@ class EmailActivate(APIView):
         except KeyError: 
             return JsonResponse({"message" : "INVALID_KEY"}, status=400)
 
-#SMS 보내기
+
+#SMS 보내기 for 회원가입
 class SMSVerificationView(APIView):
-    lookup_field = "user_id"
     serializer_class = SMSSerializer
 
     def send_verification(self, phone, code):
@@ -211,10 +211,89 @@ class SMSVerificationView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            user = User.objects.get(pk=kwargs['user_id'])
             data = request.data
+            user = request.user
             phone = data['phone_number']
+            code = randint(100000, 999999)
+            
+            # phone_number 중복 검사
+            if Profile.objects.filter(phone_number=phone).exists():
+                return JsonResponse({'message': 'REGISTERED_NUMBER'}, status=401)
+						
+			#update(조건, defaults = 생성할 데이터 값)
+            SMSAuthRequest.objects.filter(user_id=user).update(
+                phone_number=phone,
+                auth_number=code
+            )
 
+	        # phone, code 를 인자로 send_verification 메서드를 호출
+            self.send_verification(
+                phone=phone,
+                code=code
+            )
+            return JsonResponse({'message': 'SUCCESS'}, status=201)
+
+
+        except KeyError as e:
+            return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
+
+        except ValueError as e:
+            return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+
+
+#SMS 보내기 for PW찾기
+class SMSVerificationForPasswordView(APIView):
+    lookup_field = "user_id"
+    serializer_class = SMSSerializer
+
+    def send_verification(self, phone, code):
+        SMS_URL = 'https://sens.apigw.ntruss.com/sms/v2/services/' + my_settings.SMS['uri'] + '/messages'
+        timestamp = str(int(time.time() * 1000))
+        secret_key = bytes(my_settings.SMS['secret_key'], 'utf-8')
+
+        method = 'POST'
+        uri = '/sms/v2/services/' + my_settings.SMS['uri'] + '/messages'
+        message = method + ' ' + uri + '\n' + timestamp + '\n' + my_settings.SMS['access_key']
+
+        message = bytes(message, 'utf-8')
+
+        # 알고리즘으로 암호화 후, base64로 인코딩
+        signingKey = base64.b64encode(
+            hmac.new(secret_key, message, digestmod=hashlib.sha256).digest())
+
+        headers = {
+            'Content-Type': 'application/json; charset=utf-8',
+            'x-ncp-apigw-timestamp': timestamp,
+            'x-ncp-iam-access-key': my_settings.SMS['access_key'],
+            'x-ncp-apigw-signature-v2': signingKey,
+        }
+
+        body = {
+            'type': 'SMS',
+            'contentType': 'COMM',
+            'countryCode': '82',
+            'from': my_settings.SMS['from'],
+            'content': f'안녕하세요. unimate 입니다. 인증번호 [{code}]를 입력해주세요.',
+            'messages': [
+                {
+                    'to': phone
+                }
+            ]
+        }
+
+    # body를 json으로 변환
+        encoded_data = json.dumps(body)
+		
+    # post 메서드로 데이터를 보냄
+        res = requests.post(SMS_URL, headers=headers, data=encoded_data)
+        return HttpResponse(res.status_code)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            profile = Profile.objects.get(phone_number=data['phone_number'])
+            user = User.objects.get(pk=profile.pk)
+            phone = data['phone_number']
             code = randint(100000, 999999)
 
 			#update(조건, defaults = 생성할 데이터 값)
@@ -236,41 +315,108 @@ class SMSVerificationView(APIView):
 
         except ValueError as e:
             return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+        #등록되지 않은 번호 입력 시
+        except Profile.DoesNotExist as e:
+            return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
 
-# 문자인증 확인과정
+
+# 문자인증 확인과정(사용) for 회원가입
 class SMSVerificationConfirmView(APIView):
-    lookup_field = "user_id"
     serializer_class = SMSActivateSerializer
-    def get(self, request, *args, **kwargs):
-        
-        user = User.objects.get(pk=kwargs['user_id'])
-        phone_info = SMSAuthRequest.objects.get(user_id=user)
-        serializer =  SMSDetailSerializer(phone_info)
-        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         try:
-            user = User.objects.get(pk=kwargs['user_id'])
-            phone_info = SMSAuthRequest.objects.get(user_id=user)
+            user = request.user
+            profile = Profile.objects.get(pk=user.pk)
+            phone_info = SMSAuthRequest.objects.get(user_id=profile.pk)
             phone = phone_info.phone_number
-            data = request.data
-            verification_number = data['auth_number']
+            verification_number = request.data['auth_number']
 
             if int(verification_number) == phone_info.auth_number:
-                if not Profile.objects.filter(phone_number=phone).exists():
-                    Profile.objects.filter(user_id=user).update(phone_number=phone)
-                    return JsonResponse({'message': 'SUCCESS'}, status=200)
-
-                else:
-                    return JsonResponse({'message': 'REGISTERED_NUMBER'}, status=401)
-            return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
+                Profile.objects.filter(user_id=user).update(phone_number=phone)
+                return JsonResponse({'message': 'SUCCESS'}, status=200)
+            else:
+                return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
 
         except KeyError as e:
             return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
 
         except ValueError as e:
             return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+
+
+# 문자인증 확인과정(사용) for PW찾기
+class SMSVerificationConfirmForPasswordView(APIView):
+    serializer_class = SMSDetailSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            profile = Profile.objects.get(phone_number=data['phone_number'])
+            user = User.objects.get(pk=profile.pk)
+            phone_info = SMSAuthRequest.objects.get(user_id=profile.pk)
+            phone = phone_info.phone_number
+            verification_number = data['auth_number']
+
+            if int(verification_number) == phone_info.auth_number:
+                        # knox의 AuthToken에 user의 토큰 모두 삭제
+                AuthToken.objects.filter(user=user).delete()
+                # create and return new token
+                return Response(
+                    {
+                        "user": UserSerializer(
+                            user, context=user
+                        ).data,
+                        "token": AuthToken.objects.create(user)[1],
+                    }
+                )
+            else:   
+                return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
+
+        except KeyError as e:
+            return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
+
+        except ValueError as e:
+            return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+
+
+# 문자인증 확인과정(이전)
+# class SMSVerificationConfirmView(APIView):
+#     lookup_field = "user_id"
+#     serializer_class = SMSActivateSerializer
+#     def get(self, request, *args, **kwargs):
         
+#         user = User.objects.get(pk=kwargs['user_id'])
+#         phone_info = SMSAuthRequest.objects.get(user_id=user)
+#         serializer =  SMSDetailSerializer(phone_info)
+#         print(f"kwargs: {kwargs}")
+#         return Response(serializer.data)
+
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             user = User.objects.get(pk=kwargs['user_id'])
+#             phone_info = SMSAuthRequest.objects.get(user_id=user)
+#             phone = phone_info.phone_number
+#             data = request.data
+#             verification_number = data['auth_number']
+
+#             if int(verification_number) == phone_info.auth_number:
+#                 if not Profile.objects.filter(phone_number=phone).exists():
+#                     Profile.objects.filter(user_id=user).update(phone_number=phone)
+#                     return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+#                 else:
+#                     return JsonResponse({'message': 'REGISTERED_NUMBER'}, status=401)
+#             return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
+
+#         except KeyError as e:
+#             return JsonResponse({'message': f'KEY_ERROR: =>  {e}'}, status=400)
+
+#         except ValueError as e:
+#             return JsonResponse({'message': f'VALUE_ERROR: =>  {e}'}, status=400)
+
+
+
 
 #ID 찾기
 class FindIDAPI(APIView):
@@ -317,17 +463,13 @@ class ResetPasswordAPI(generics.UpdateAPIView):
     serializer_class = ResetPasswordSerializer
 
     def update(self, request, *args, **kwargs):
-        print("1-1")
         # data를 serialize해서 self(put method)를 실행함
         serializer = self.get_serializer(data=request.data)
-        print("1-2")
         serializer.is_valid(raise_exception=True)
-        print("1-3")
         # put method를 실행하고 유효성 검사 후 저장함
         user = serializer.save()
         # knox의 AuthToken에 user의 토큰 모두 삭제
         AuthToken.objects.filter(user=user).delete()
-        print("1-4")
         # create and return new token
         return Response({"user": UserSerializer(user, context=self.get_serializer_context()).data})
 

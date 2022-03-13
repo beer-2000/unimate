@@ -15,9 +15,13 @@ urlpatterns = [
     #PW 변경
     path("changepw/", ChangePasswordAPI.as_view(), name='changepw'),
     path("resetpw/", ResetPasswordAPI.as_view(), name='resetpw'),
-    # sms 인증
-    path("sms/<int:user_id>/", SMSVerificationView.as_view(), name='sms'),
-    path("smsactivate/<int:user_id>/", SMSVerificationConfirmView.as_view(), name='sms'),
+    # sms 인증 for 회원가입
+    path("sms/", SMSVerificationView.as_view(), name='sms'),
+    path("smsactivate/", SMSVerificationConfirmView.as_view(), name='smsactivate'),
+    # sms 인증 for PW찾기
+    path("sms_pw/", SMSVerificationForPasswordView.as_view(), name='sms_pw'),
+    path("smsactivate_pw/", SMSVerificationConfirmForPasswordView.as_view(), name='smsactivate_pw'),
+    #path("smsactivate/<int:user_id>/", SMSVerificationConfirmView.as_view(), name='sms'),
     #user_pk : User 테이블의 pk인 'id' 참조
     #user_id : User 테이블에서 Profile 테이블로 참조해온 fk의 이름이 'user_id'임
     #path("profile/<int:user_pk>/update/", ProfileUpdateAPI.as_view()),
