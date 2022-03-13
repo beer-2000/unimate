@@ -171,6 +171,27 @@ class ChangePasswordSerializer(serializers.Serializer):
         return user
 
 
+#PW 리셋(수정중)
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(max_length=128, write_only=True, required=True)
+    new_password2 = serializers.CharField(max_length=128, write_only=True, required=True)
+    user_id = serializers.IntegerField(required=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['new_password2']:
+            raise serializers.ValidationError({'new_password2': _("Passwords didn't match")})
+        user = User.objects.get(pk=data['user_id'])
+        password_validation.validate_password(data['new_password'], user)
+        return data
+
+    def save(self, **kwargs):
+        password = self.validated_data['new_password']
+        user = User.objects.get(pk=self.validated_data['user_id'])
+        user.set_password(password)
+        user.save()
+        return user
+
+
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room

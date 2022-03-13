@@ -312,6 +312,25 @@ class ChangePasswordAPI(generics.UpdateAPIView):
         )
 
 
+#PW 리셋(수정중)
+class ResetPasswordAPI(generics.UpdateAPIView):
+    serializer_class = ResetPasswordSerializer
+
+    def update(self, request, *args, **kwargs):
+        # request.data에 user_id를 추가
+        data = request.data
+        data['user_id'] = kwargs['user_id']
+        # data를 serialize해서 self(put method)를 실행함
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        # put method를 실행하고 유효성 검사 후 저장함
+        user = serializer.save()
+        # knox의 AuthToken에 user의 토큰 모두 삭제
+        AuthToken.objects.filter(user=user).delete()
+        # create and return new token
+        return Response({"user": UserSerializer(user, context=self.get_serializer_context()).data})
+
+
 class LoginAPI(generics.GenericAPIView):
     serializer_class = LoginUserSerializer
 

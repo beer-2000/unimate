@@ -14,6 +14,7 @@ urlpatterns = [
     path("findid/", FindIDAPI.as_view(), name='findid'),
     #PW 변경
     path("changepw/", ChangePasswordAPI.as_view(), name='changepw'),
+    path("resetpw/<int:user_id>/", ResetPasswordAPI.as_view(), name='resetpw'),
     # sms 인증
     path("sms/<int:user_id>/", SMSVerificationView.as_view(), name='sms'),
     path("smsactivate/<int:user_id>/", SMSVerificationConfirmView.as_view(), name='sms'),
