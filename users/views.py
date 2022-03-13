@@ -1,23 +1,19 @@
-from cgitb import lookup
-from genericpath import exists
 import json
 from django.http import JsonResponse, HttpResponse
-
+from django.contrib.auth import login, logout
 from django.shortcuts import render, get_object_or_404, redirect
-from rest_framework import viewsets, permissions, generics, status
+from rest_framework import permissions, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from knox.models import AuthToken
-from unimate.my_settings import SMS
 from users.serializers import *
 from users.models import *
 from users.functions import *
 
 from .email import message
-from .utils import account_activation_token
-from django.core.exceptions import ValidationError 
-from django.core.validators import validate_email
+from .utils import account_activation_token, LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.core.mail import EmailMessage
@@ -70,7 +66,8 @@ class LoginAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
+        user = serializer.validated_data['user']
+        login(request, user)
         return Response(
             {
                 "user": UserSerializer(
@@ -89,7 +86,7 @@ class UserAPI(generics.RetrieveAPIView):
         return self.request.user
 
 
-class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+class ProfileDetailAPI(LoginRequiredMixin, generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer

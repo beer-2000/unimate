@@ -95,6 +95,8 @@ class User(AbstractUser):
     college = models.ForeignKey(College, on_delete=models.CASCADE)
     major = models.ForeignKey(Major, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
+    is_authenticated = models.BooleanField(default=True)
+    is_anonymous = models.BooleanField(default=False)
 
     objects = UserManager()
     USERNAME_FIELD = 'username'
