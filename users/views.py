@@ -1,6 +1,5 @@
 import json
 from django.http import JsonResponse, HttpResponse
-from django.contrib.auth import login, logout
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework import permissions, generics, status
 from rest_framework.response import Response
@@ -68,7 +67,6 @@ class LoginAPI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
         AuthToken.objects.filter(user=user).delete()
-        login(request, user)
         return Response(
             {
                 "user": UserSerializer(
@@ -80,14 +78,15 @@ class LoginAPI(generics.GenericAPIView):
 
 
 class UserAPI(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,]
     serializer_class = UserSerializer
 
     def get_object(self):
         return self.request.user
 
 
-class ProfileDetailAPI(LoginRequiredMixin, generics.RetrieveUpdateDestroyAPIView):
+class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
     lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
@@ -435,6 +434,7 @@ class FindIDAPI(APIView):
 
 #PW 변경
 class ChangePasswordAPI(generics.UpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = ChangePasswordSerializer
 
     def update(self, request, *args, **kwargs):
@@ -458,6 +458,7 @@ class ChangePasswordAPI(generics.UpdateAPIView):
 
 #PW 리셋
 class ResetPasswordAPI(generics.UpdateAPIView):
+    
     serializer_class = ResetPasswordSerializer
 
     def update(self, request, *args, **kwargs):
@@ -517,6 +518,7 @@ class MajorView(APIView):
 
 
 class RoomCreateAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = RoomSerializer
     
     def post(self, request):
@@ -541,12 +543,14 @@ class RoomCreateAPI(APIView):
 
 #방 목록 - 최신순 정렬(기본)
 class RoomListAPI(generics.ListAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
     queryset = Room.objects.all().order_by('-created_at')
     serializer_class = RoomSerializer
 
 
 #방 정보
 class RoomDetailAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, pk, format=None):
         room = Room.objects.get(pk=pk)
         serializer = RoomSerializer(room)
@@ -555,7 +559,7 @@ class RoomDetailAPI(APIView):
 
 #'editing' 추천 기능(방과 프로필 비교) 작성 중
 class RoomRecommendAPI(APIView):
-
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, format=None):
         profile = Profile.objects.get(user_id=request.user.id)
         allroom = Room.objects.all().order_by('-created_at')
@@ -583,6 +587,7 @@ class RoomRecommendAPI(APIView):
 
 # 대화 중인 채팅방 (owner가 안 불러와져서, RoomWithoutownerSerializer 작성)
 class ParticipationListAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, format=None):
         queryset = User.objects.filter(pk=request.user.id).prefetch_related('room_set')[0].room_set.values()
         #print(queryset)
@@ -594,6 +599,7 @@ class ParticipationListAPI(APIView):
 
 # 방 입장
 class RoomEntranceAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get_object(self, pk):
         return get_object_or_404(Room, pk=pk)
 
@@ -622,6 +628,7 @@ class RoomEntranceAPI(APIView):
 
 # 방 퇴장
 class RoomExitAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get_object(self, pk):
         return get_object_or_404(Room, pk=pk)
 
@@ -643,6 +650,7 @@ class RoomExitAPI(APIView):
 
 #방 목록 - 필터
 class RoomFilterAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = FilterSerializer
 
     def post(self, request):
@@ -711,6 +719,7 @@ class RoomFilterAPI(APIView):
 
 #방 검색
 class RoomSearchAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = SearchSerializer
 
     def post(self, request, format=None):
@@ -728,6 +737,7 @@ class RoomSearchAPI(APIView):
 
 
 class MeetCreateAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = MeetSerializer
     
     def post(self, request):
@@ -748,6 +758,7 @@ class MeetCreateAPI(APIView):
 
 
 class MeetDetailAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, pk, format=None):
         meet = Meet.objects.get(pk=pk)
         serializer = MeetSerializer(meet)
@@ -756,6 +767,7 @@ class MeetDetailAPI(APIView):
 
 #약속 참여
 class MeetEntranceAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get_object(self, pk):
         return get_object_or_404(Meet, pk=pk)
 
@@ -776,6 +788,7 @@ class MeetEntranceAPI(APIView):
 
 # 약속 퇴장
 class MeetExitAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get_object(self, pk):
         return get_object_or_404(Meet, pk=pk)
 
@@ -795,6 +808,7 @@ class MeetExitAPI(APIView):
 
 #약속 내역 - room_id == id 인 방에 종속된 약속 list
 class MeetListAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self, requets, id, format=None):
         meet = Meet.objects.filter(room_id=id)
         meet = Meet.objects.filter(room_id=id).order_by('-created_at')
