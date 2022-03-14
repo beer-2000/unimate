@@ -546,6 +546,20 @@ class RoomCreateAPI(APIView):
             return Response(room_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+#방 생성 전 - 학교 인증 여부 확인
+class SchoolAuthAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        profile = Profile.objects.get(pk=request.user.pk)
+        if profile.school_auth_status == 'N':
+            body = {"message": "School authentication is necessary"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            body = {"message": "School authentication is complete"}
+            return Response(body, status=status.HTTP_200_OK)
+
+
 #방 목록 - 최신순 정렬(기본)
 class RoomListAPI(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -618,6 +632,9 @@ class RoomEntranceAPI(APIView):
         room = self.get_object(pk)
         person = User.objects.get(pk=request.user.id)
         profile = person.profile
+        if profile.school_auth_status == 'N':
+            body = {"message": "School authentication is necessary"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
         #입장 가능 여부 확인
         enter, message = compare_total(room, profile)
         if not enter:
