@@ -110,7 +110,7 @@ class WithdrawAPI(APIView):
 
 # 이메일 인증
 class EmailAuthView(APIView):
-    
+    permission_classes = (permissions.IsAuthenticated,)    
     lookup_field = "user_id"
     serializer_class = EmailSerializer
 
@@ -143,6 +143,7 @@ class EmailAuthView(APIView):
 
 # 이메일 인증 확인
 class EmailActivate(APIView):
+    permission_classes = (permissions.IsAuthenticated,)    
     def get(self, request, uidb64, token):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -164,6 +165,7 @@ class EmailActivate(APIView):
 
 #SMS 보내기 for 회원가입
 class SMSVerificationView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)    
     serializer_class = SMSSerializer
 
     def send_verification(self, phone, code):
@@ -321,6 +323,7 @@ class SMSVerificationForPasswordView(APIView):
 
 # 문자인증 확인과정(사용) for 회원가입
 class SMSVerificationConfirmView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)    
     serializer_class = SMSActivateSerializer
 
     def post(self, request, *args, **kwargs):
@@ -460,7 +463,7 @@ class ChangePasswordAPI(generics.UpdateAPIView):
 
 #PW 리셋
 class ResetPasswordAPI(generics.UpdateAPIView):
-    
+    permission_classes = (permissions.IsAuthenticated,)    
     serializer_class = ResetPasswordSerializer
 
     def update(self, request, *args, **kwargs):
