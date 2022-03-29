@@ -34,7 +34,7 @@ class MajorSerializer(serializers.ModelSerializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "password", "university", "college", "major")
+        fields = ("id", "username", "password", "university", "college", "major", "agree")
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
@@ -57,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
         represent['university'] = instance.university.university
         represent['college'] = instance.college.college
         represent['major'] = instance.major.major
+        represent['agree'] = instance.agree
         return represent
 
 
@@ -158,8 +159,11 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, data):
         if data['new_password'] != data['new_password2']:
             raise serializers.ValidationError({'new_password2': _("Passwords didn't match")})
+        if data['new_password'] == data['old_password']:
+            raise serializers.ValidationError({'new_password': _("Same password as the previous one")})
         password_validation.validate_password(data['new_password'], self.context['request'].user)
         return data
+    
 
     def save(self, **kwargs):
         password = self.validated_data['new_password']

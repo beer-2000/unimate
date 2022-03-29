@@ -93,6 +93,7 @@ class User(AbstractUser):
     university = models.ForeignKey(University, on_delete=models.CASCADE)
     college = models.ForeignKey(College, on_delete=models.CASCADE)
     major = models.ForeignKey(Major, on_delete=models.CASCADE)
+    agree = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     objects = UserManager()

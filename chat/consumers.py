@@ -1,6 +1,11 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
+#추가
+from channels.db import database_sync_to_async
+from users.models import User
+from chat.models import *
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -38,8 +43,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
+        sender = self.scope['user'].username
+        receiver = self.scope['path'].split('_')[0]
 
         # Send message to WebSocket
+        await self.post_message(sender=sender, receiver=receiver, message=message)
         await self.send(text_data=json.dumps({
             'message': message
         }))
+        print()
+
+    @database_sync_to_async
+    def post_message(self, sender ,receiver, message):
+        sender = User.objects.filter(username = sender)[0]
+        receiver = User.objects.filter(username = sender)[0]
+        print(f"sender: {sender}")
+        print(f"receiver: {receiver}")
+        MessageModel.objects.create(user = sender , recipient = receiver , body = message)
