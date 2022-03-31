@@ -31,15 +31,15 @@ def HelloUser(request):
 class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
+    # def get(self, request, *args, **kwargs):
+    #     user = request.user
 
-        if user == None or user.is_anonymous:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    #     if user == None or user.is_anonymous:
+    #         return Response(status=status.HTTP_404_NOT_FOUND)
         
-        serializer = serializers.CreateUserSerializer(user)
+    #     serializer = serializers.CreateUserSerializer(user)
         
-        return Response(serializer.data)
+    #     return Response(serializer.data)
     
     def post(self, request, *args, **kwargs):
         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
@@ -110,15 +110,14 @@ class WithdrawAPI(APIView):
 
 # 이메일 인증
 class EmailAuthView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)    
-    lookup_field = "user_id"
+    #permission_classes = (permissions.IsAuthenticated,)
     serializer_class = EmailSerializer
 
     def post(self, request, *args, **kwargs):
         data = request.data
         try:
             email = data["school_email"]
-            user = User.objects.get(pk=kwargs['user_id'])
+            user = request.user
             user_id = user.id
             SchoolEmail.objects.filter(user_id=user).update(school_email=email)
 
@@ -143,7 +142,7 @@ class EmailAuthView(APIView):
 
 # 이메일 인증 확인
 class EmailActivate(APIView):
-    permission_classes = (permissions.IsAuthenticated,)    
+    #permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, uidb64, token):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -427,8 +426,9 @@ class FindIDAPI(APIView):
         email_serializer = FindIDSerializer(data=request.data)
         if email_serializer.is_valid:
             print(request.data['email'])
-            if request.data['email'] == request.user.email:
-                serializer = UsernameSerializer(request.user)
+            if User.objects.filter(email=request.data['email']).exists():
+                user = User.objects.get(email=request.data['email'])
+                serializer = UsernameSerializer(user)
                 return Response(serializer.data)
             else:
                 body = {"message": "Unregistered email"}

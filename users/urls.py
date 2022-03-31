@@ -9,7 +9,7 @@ urlpatterns = [
     path("logout/", knox_views.LogoutView.as_view(), name='knox_logout'),
     path("user/", UserAPI.as_view()),
     # email 인증
-    path("email/<int:user_id>/", EmailAuthView.as_view(), name='email'),
+    path("email/", EmailAuthView.as_view(), name='email'),
     path("activate/<str:uidb64>/<str:token>", EmailActivate.as_view(), name='activate'),
     path("findid/", FindIDAPI.as_view(), name='findid'),
     #PW 변경
