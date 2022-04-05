@@ -86,7 +86,7 @@ class UserAPI(generics.RetrieveAPIView):
 
 
 class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    #permission_classes = (permissions.IsAuthenticated,)
     lookup_field = "user_id"
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
@@ -110,13 +110,15 @@ class WithdrawAPI(APIView):
 
 # 이메일 인증
 class EmailAuthView(APIView):
-    #permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = EmailSerializer
 
     def post(self, request, *args, **kwargs):
         data = request.data
         try:
             email = data["school_email"]
+            if Profile.objects.filter(school_email=request.data['school_email']).exists():
+                return JsonResponse({"error" : "Existing school_email"}, status=400)
             user = request.user
             user_id = user.id
             SchoolEmail.objects.filter(user_id=user).update(school_email=email)
@@ -142,7 +144,6 @@ class EmailAuthView(APIView):
 
 # 이메일 인증 확인
 class EmailActivate(APIView):
-    #permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, uidb64, token):
         try: 
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -154,7 +155,7 @@ class EmailActivate(APIView):
                 user.profile.school_email=email
                 user.save() 
                 # return redirect(EMAIL['REDIRECT_PAGE'])
-                return Response('이메일 인증이 완료되었습니다.', status=status.HTTP_200_OK)
+                return JsonResponse({"message" : "EMAIL AUTH SUCCESS"}, status=status.HTTP_200_OK)
             return JsonResponse({"message" : "AUTH FAIL"}, status=400) 
         except ValidationError: 
             return JsonResponse({"message" : "TYPE_ERROR"}, status=400) 

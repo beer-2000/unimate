@@ -89,7 +89,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True)
-    email = models.EmailField(max_length=254, blank=True)
+    email = models.EmailField(max_length=254, blank=True, unique=True)
     university = models.ForeignKey(University, on_delete=models.CASCADE)
     college = models.ForeignKey(College, on_delete=models.CASCADE)
     major = models.ForeignKey(Major, on_delete=models.CASCADE)
