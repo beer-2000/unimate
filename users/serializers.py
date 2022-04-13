@@ -29,6 +29,13 @@ class MajorSerializer(serializers.ModelSerializer):
         model = Major
         fields = ['id', 'major', 'college', 'university']
 
+
+class MajorDetailSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    major = serializers.CharField()
+    college = serializers.CharField()
+    university = serializers.CharField()
+
         
 # 회원가입
 class CreateUserSerializer(serializers.ModelSerializer):

@@ -58,7 +58,7 @@ class RegistrationAPI(generics.GenericAPIView):
             }
         )
 
-
+#기존 로그인
 class LoginAPI(generics.GenericAPIView):
     serializer_class = LoginUserSerializer
 
@@ -75,6 +75,34 @@ class LoginAPI(generics.GenericAPIView):
                 "token": AuthToken.objects.create(user)[1],
             }
         )
+
+
+# # 수정중
+# class LoginAPI(generics.GenericAPIView):
+#     serializer_class = LoginUserSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data
+#         AuthToken.objects.filter(user=user).delete()
+#         url = 'http://127.0.0.1:8000/login/'
+#         # headers = {"token": AuthToken.objects.create(user)[1],}
+#         # print(headers)
+#         res = requests.post(url)
+#         res.headers["HTTP_token"] = AuthToken.objects.create(user)[1]
+#         # print("request")
+#         # print(request)
+#         # print(type(request))
+#         # print(dir(request))
+#         # print(request.data)
+#         print(res)
+#         print(type(res))
+#         print(dir(res))
+#         print(res.url)
+#         print(res.headers)
+#         print(res.status_code)
+#         return HttpResponse(res)
 
 
 class UserAPI(generics.RetrieveAPIView):
@@ -268,6 +296,9 @@ class SMSVerificationForPasswordView(APIView):
             'x-ncp-iam-access-key': my_settings.SMS['access_key'],
             'x-ncp-apigw-signature-v2': signingKey,
         }
+        ####
+        print("headers")
+        print(headers)
 
         body = {
             'type': 'SMS',
@@ -287,6 +318,20 @@ class SMSVerificationForPasswordView(APIView):
 		
     # post 메서드로 데이터를 보냄
         res = requests.post(SMS_URL, headers=headers, data=encoded_data)
+        ####
+        print("res")
+        print(res)
+        print(f'type: {type(res)}')
+        # print('all in res')
+        #num = 0
+        # for i in res:
+        #     print(num)
+        #     print(i)
+        #     num = num + 1
+        print(f'headers: {res.headers}')
+        print(f'content: {res.content}')
+        print(f'status_code: {res.status_code}')
+
         return HttpResponse(res.status_code)
 
     def post(self, request, *args, **kwargs):
@@ -501,7 +546,7 @@ class ResetPasswordAPI(generics.UpdateAPIView):
 # 대학교 정보
 class UniversityView(APIView):
     def get(self, request, *args, **kwargs):
-        university = University.objects.all()
+        university = University.objects.all().order_by('university')
         serializer = UniversitySerializer(university, many=True)
         return Response(serializer.data)
 
@@ -521,6 +566,30 @@ class MajorView(APIView):
         major = Major.objects.filter(university=university,college=college)
         serializer = MajorSerializer(major, many=True)
         return Response(serializer.data)
+
+# 대학교에 소속된 학과 정보 
+class MajorOfUnivView(APIView):
+    def get(self, request, *args, **kwargs):
+        university = University.objects.get(pk=kwargs['university_id'])
+        print(type(university))
+        # university에 속한 college 불러오기
+        colleges = College.objects.filter(university=university)
+        # colleges에 속한 major 불러와서 정렬하기
+        major = Major.objects.filter(college__in=colleges).order_by('major')
+        serializer = MajorSerializer(major, many=True)
+        return Response(serializer.data)
+
+# 학과 정보를 id->이름 으로 치환하기
+class MajorDetailView(APIView):
+    serializer_class = MajorDetailSerializer
+    
+    def post(self, request):
+        major_data = request.data
+        major_data['college'] = College.objects.get(id=major_data['college']).college
+        major_data['university'] = University.objects.get(id=major_data['university']).university
+        serializer = MajorDetailSerializer(data=major_data)
+        if serializer.is_valid():
+            return Response(serializer.data)
 
 
 class RoomCreateAPI(APIView):

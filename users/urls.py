@@ -31,6 +31,8 @@ urlpatterns = [
     path('university/', UniversityView.as_view()),
     path('college/<int:university_id>/', CollegeView.as_view()),
     path('major/<int:university_id>/<int:college_id>/', MajorView.as_view()),
+    path('major_univ/<int:university_id>/', MajorOfUnivView.as_view()),
+    path('major_detail/', MajorDetailView.as_view()),
     #방 관련
     path('room_create/', RoomCreateAPI.as_view(), name='room_create'),
     path('schoolcheck/', SchoolAuthAPI.as_view(), name='schoolcheck'),
