@@ -3,7 +3,7 @@ import json
 
 #추가
 from channels.db import database_sync_to_async
-from users.models import User
+from accounts.models import User
 from chat.models import *
 
 

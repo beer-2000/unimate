@@ -1,6 +1,4 @@
 from ast import literal_eval
-from rest_framework import status
-from rest_framework.response import Response
 
 
 #방 입장 조건 비교 (각각 True or False 반환)

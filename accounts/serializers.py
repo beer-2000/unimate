@@ -1,10 +1,8 @@
-from base64 import urlsafe_b64decode
-from urllib import request
 from rest_framework import serializers
+from accounts.models import *
+
 from django.contrib.auth import authenticate, password_validation
 from django.utils.translation import gettext_lazy as _
-
-from users.models import *
 
 
 
@@ -38,18 +36,48 @@ class MajorDetailSerializer(serializers.Serializer):
 
         
 # 회원가입
+# class CreateUserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ("id", "username", "password", "email", "university", "college", "major", "agree")
+#         extra_kwargs = {"password": {"write_only": True}}
+
+#     def create(self, validated_data):
+#         user = User.objects.create_user(
+#             None, validated_data["username"], validated_data["email"], validated_data["university"],
+#             validated_data["college"], validated_data["major"], validated_data["password"],
+#         )
+#         return user
+
+
+# 회원가입(수정중)
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "password", "university", "college", "major", "agree")
+        fields = ("id", "username", "password", "email", "university", "college", "major", "agree")
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            None, validated_data["username"], validated_data["university"],
-            validated_data["college"], validated_data["major"], validated_data["password"],
+            validated_data["username"], validated_data["email"], validated_data["university"],
+            validated_data["college"], validated_data["major"], validated_data["agree"], validated_data["password"],
         )
         return user
+
+# 회원가입(수정중- kwargs)
+class CreateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "password", "email", "university", "college", "major", "agree")
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            validated_data["username"], validated_data["email"], validated_data["university"],
+            validated_data["college"], validated_data["major"], validated_data["agree"], validated_data["password"],
+        )
+        return user
+
 
 
 # 접속 유지중인지 확인
@@ -61,6 +89,7 @@ class UserSerializer(serializers.ModelSerializer):
         represent = dict()
         represent['id'] = instance.id
         represent['username'] = instance.username
+        represent['email'] = instance.email
         represent['university'] = instance.university.university
         represent['college'] = instance.college.college
         represent['major'] = instance.major.major
@@ -105,37 +134,6 @@ class WithdrawSerializer(serializers.ModelSerializer):
         model = Withdraw
         fields = ("withdraw_reason",)
 
-
-# 문자 전송
-class SMSSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = SMSAuthRequest
-        fields = ("id", "phone_number", "user",)
-
-# 문자 인증
-class SMSActivateSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = SMSAuthRequest
-        fields = ("id", "auth_number", "user",)
-
-# 문자 detail
-class SMSDetailSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = SMSAuthRequest
-        fields = "__all__"
-
-# 이메일 인증
-class EmailSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = Profile
-        fields = ("id", "school_email", "user",)
 
 #ID 찾기
 class FindIDSerializer(serializers.Serializer):
@@ -221,41 +219,3 @@ class ResetPasswordSerializer(serializers.Serializer):
 #         user.save()
 #         return user
 
-
-class RoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        fields = '__all__'
-
-
-# RoomSerializer - "owner"
-class RoomWithoutownerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        fields = ("id", "created_at", "room_type", "title", "grade_limit", "heads_limit", "gender_limit",
-                "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")
-
-
-class FilterSerializer(serializers.Serializer):
-    room_type = serializers.IntegerField(allow_null=True)
-    grade = serializers.IntegerField(allow_null=True)
-    gender = serializers.CharField(allow_null=True)
-    common = serializers.CharField(allow_null=True)
-
-
-class SearchSerializer(serializers.Serializer):
-    keyword = serializers.CharField()
-
-
-class MeetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Meet
-        fields = '__all__'
-
-
-# MeetSerializer - "owner"
-class MeetWithoutownerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Meet
-        fields = ("id", "created_at", "room_type", "title", "grade_limit", "heads_limit", "gender_limit",
-                "meet_purpose", "room_description", "meet_status", "room_open", "common", "mbti", "interest", "college")
