@@ -50,7 +50,7 @@ class MajorDetailSerializer(serializers.Serializer):
 #         return user
 
 
-# 회원가입(수정중)
+# 회원가입(수정)
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -63,21 +63,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
             validated_data["college"], validated_data["major"], validated_data["agree"], validated_data["password"],
         )
         return user
-
-# 회원가입(수정중- kwargs)
-class CreateUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("id", "username", "password", "email", "university", "college", "major", "agree")
-        extra_kwargs = {"password": {"write_only": True}}
-
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            validated_data["username"], validated_data["email"], validated_data["university"],
-            validated_data["college"], validated_data["major"], validated_data["agree"], validated_data["password"],
-        )
-        return user
-
 
 
 # 접속 유지중인지 확인

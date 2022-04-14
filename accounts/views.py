@@ -20,16 +20,6 @@ def HelloUser(request):
 
 class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
-
-    # def get(self, request, *args, **kwargs):
-    #     user = request.user
-
-    #     if user == None or user.is_anonymous:
-    #         return Response(status=status.HTTP_404_NOT_FOUND)
-        
-    #     serializer = serializers.CreateUserSerializer(user)
-        
-    #     return Response(serializer.data)
     
     def post(self, request, *args, **kwargs):
         if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
