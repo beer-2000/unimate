@@ -6,7 +6,7 @@ import hashlib
 import requests
 import json
 import datetime
-from auths import my_settings
+from unimate import my_settings
 
 from django.http import JsonResponse, HttpResponse
 from rest_framework import permissions

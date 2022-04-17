@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -68,10 +69,18 @@ class UserManager(BaseUserManager):
             user = self.create_user(
                 username = self.model.normalize_username(username),
                 email = self.normalize_email(email),
-                university = University.objects.get(university='univ1'),
-                college = College.objects.get(college='col1'),
-                major = Major.objects.get(major='major1'),
+                university = University.objects.get(university='홍익대학교'),
+                college = College.objects.get(
+                    Q(university=1) &
+                    Q(college='공과대학')
+                ),
+                major = Major.objects.get(
+                    Q(university=1)&
+                    Q(college=1) &
+                    Q(major='컴퓨터공학부')
+                ),
                 password=password,
+                agree=True,
             )
             user.is_superuser = True
             user.is_staff = True
@@ -112,12 +121,13 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=80, blank=True, null=True)
+    phone_number = models.CharField(max_length=80)
     school_email = models.EmailField(max_length=254, blank=True)
-    birth_of_date = models.DateField(blank=True, null=True)
+    birth_of_date = models.DateField()
     gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
-    entrance_year = models.IntegerField(blank=True, null=True)
-    grade = models.IntegerField(null=True)
+    entrance_year = models.IntegerField()
+    grade = models.IntegerField()
+    name = models.CharField(max_length=200)
     nickname = models.CharField(max_length=200)
     introducing = models.CharField(max_length=255, blank=True)
     school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
@@ -125,6 +135,22 @@ class Profile(models.Model):
     mbti = models.CharField(max_length=255, blank=True)
     interest_list = models.CharField(max_length=255, blank=True)
     withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요
+
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # phone_number = models.CharField(max_length=80, blank=True, null=True)
+    # school_email = models.EmailField(max_length=254, blank=True)
+    # birth_of_date = models.DateField(blank=True, null=True)
+    # gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
+    # entrance_year = models.IntegerField(blank=True, null=True)
+    # grade = models.IntegerField(null=True)
+    # name = models.CharField(max_length=200, blank=True)
+    # nickname = models.CharField(max_length=200, blank=True)
+    # introducing = models.CharField(max_length=255, blank=True)
+    # school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
+    # registration_date = models.DateField(auto_now_add=True)
+    # mbti = models.CharField(max_length=255, blank=True)
+    # interest_list = models.CharField(max_length=255, blank=True)
+    # withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요    
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'

@@ -14,6 +14,7 @@ urlpatterns = [
     path("changepw/", ChangePasswordAPI.as_view(), name='changepw'),
     path("resetpw/", ResetPasswordAPI.as_view(), name='resetpw'),
     # 프로필
+    path("profile_register/", ProfileRegisterAPI.as_view()),
     path("profile/<int:user_id>/", ProfileDetailAPI.as_view()),
     path("withdraw/", WithdrawAPI.as_view(), name='withdraw'),
     # 학교

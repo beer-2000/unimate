@@ -114,6 +114,18 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         return value
 
 
+class ProfileRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ("nickname", "mbti", "interest_list", "name", "birth_of_date", "introducing", "gender", "grade", "entrance_year",)
+
+
+# class ProfileModifySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Profile
+#         fields = ("nickname", "mbti", "interest_list", "name", "birth_of_data", "introducing", "gender",)
+
+
 class WithdrawSerializer(serializers.ModelSerializer):
     class Meta:
         model = Withdraw

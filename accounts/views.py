@@ -100,6 +100,25 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProfileDetailSerializer
 
 
+class ProfileRegisterAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = ProfileRegisterSerializer
+
+    def post(self, request, *args, **kwargs):
+        profile = Profile.objects.get(id=request.user.id)
+        profile_serializer = ProfileRegisterSerializer(profile, request.data)
+        print(profile_serializer)
+        print()        
+        print(request.data)
+        if profile_serializer.is_valid():
+            profile_serializer.save()
+            return Response(profile_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
+
+
 class WithdrawAPI(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = WithdrawSerializer
