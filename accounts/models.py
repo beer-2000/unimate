@@ -120,37 +120,37 @@ class Profile(models.Model):
         ('withdrawal', 'Withdrawal member'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=80)
-    school_email = models.EmailField(max_length=254, blank=True)
-    birth_of_date = models.DateField()
-    gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
-    entrance_year = models.IntegerField()
-    grade = models.IntegerField()
-    name = models.CharField(max_length=200)
-    nickname = models.CharField(max_length=200)
-    introducing = models.CharField(max_length=255, blank=True)
-    school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
-    registration_date = models.DateField(auto_now_add=True)
-    mbti = models.CharField(max_length=255, blank=True)
-    interest_list = models.CharField(max_length=255, blank=True)
-    withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요
-
     # user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # phone_number = models.CharField(max_length=80, blank=True, null=True)
+    # phone_number = models.CharField(max_length=80)
     # school_email = models.EmailField(max_length=254, blank=True)
-    # birth_of_date = models.DateField(blank=True, null=True)
+    # birth_of_date = models.DateField()
     # gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
-    # entrance_year = models.IntegerField(blank=True, null=True)
-    # grade = models.IntegerField(null=True)
-    # name = models.CharField(max_length=200, blank=True)
-    # nickname = models.CharField(max_length=200, blank=True)
+    # entrance_year = models.IntegerField()
+    # grade = models.IntegerField()
+    # name = models.CharField(max_length=200)
+    # nickname = models.CharField(max_length=200)
     # introducing = models.CharField(max_length=255, blank=True)
     # school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
     # registration_date = models.DateField(auto_now_add=True)
     # mbti = models.CharField(max_length=255, blank=True)
     # interest_list = models.CharField(max_length=255, blank=True)
-    # withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요    
+    # withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=80, blank=True, null=True)
+    school_email = models.EmailField(max_length=254, blank=True)
+    birth_of_date = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=80, choices=GENDER_CHOICES) #choice 필요
+    entrance_year = models.IntegerField(blank=True, null=True)
+    grade = models.IntegerField(null=True)
+    name = models.CharField(max_length=200, blank=True)
+    nickname = models.CharField(max_length=200, blank=True)
+    introducing = models.CharField(max_length=255, blank=True)
+    school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
+    registration_date = models.DateField(auto_now_add=True)
+    mbti = models.CharField(max_length=255, blank=True)
+    interest_list = models.CharField(max_length=255, blank=True)
+    withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요    
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
         db_table = 'profile'
