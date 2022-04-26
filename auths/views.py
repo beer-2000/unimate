@@ -71,7 +71,7 @@ class EmailActivate(APIView):
             email = SchoolEmail.objects.get(user_id=user).school_email
             
             if account_activation_token.check_token(user, token):
-                user.profile.school_auth_status = 'Y'
+                user.profile.auth_status = 'School complete'
                 user.profile.school_email=email
                 user.save() 
                 # return redirect(EMAIL['REDIRECT_PAGE'])
@@ -122,6 +122,7 @@ class SMSVerificationView(APIView):
                 }
             ]
         }
+    
 
 # body를 json으로 변환
         encoded_data = json.dumps(body)
@@ -273,7 +274,9 @@ class SMSVerificationConfirmView(APIView):
 
             if int(verification_number) == phone_info.auth_number:
                 Profile.objects.filter(user_id=user).update(phone_number=phone)
-                return JsonResponse({'message': 'SUCCESS'}, status=200)
+                Profile.objects.filter(user_id=user).update(auth_status='Phone complete')
+                auth_status = Profile.objects.filter(user_id=user)[0].auth_status
+                return JsonResponse({'auth_status': auth_status}, status=200)
             else:
                 return JsonResponse({'message': 'INVALID_NUMBER'}, status=401)
 

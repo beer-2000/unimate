@@ -46,7 +46,7 @@ class Major(models.Model):
 
 # user 커스터마이징
 class UserManager(BaseUserManager):
-    def create_user(self, username, email, university, college, major, agree, password=None):
+    def create_user(self, username, email, university, college, major, use_agree, information_agree, password=None):
         if not username:
             raise ValueError('User must have an username')
         
@@ -56,7 +56,8 @@ class UserManager(BaseUserManager):
             university = university,
             college = college,
             major = major,
-            agree = agree
+            use_agree = use_agree,
+            information_agree = information_agree,
         )
 
         user.set_password(password)
@@ -93,7 +94,8 @@ class User(AbstractUser):
     university = models.ForeignKey(University, on_delete=models.CASCADE)
     college = models.ForeignKey(College, on_delete=models.CASCADE)
     major = models.ForeignKey(Major, on_delete=models.CASCADE)
-    agree = models.BooleanField(default=False)
+    use_agree = models.BooleanField(default=False)
+    information_agree = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     objects = UserManager()
@@ -111,9 +113,11 @@ class Profile(models.Model):
         ('M', 'Male'),
         ('F', 'Female'),
     )
-    SCHOOL_AUTH_CHOICES = (
-        ('Y', 'School authentication complete'),
-        ('N', 'School authentication necessary'),
+    AUTH_STATUS = (
+        ('Registered', 'Registered - Should authenticate phone'),
+        ('Phone complete', 'Phone complete -  Should enter profile'),        
+        ('Profile complete', 'Profile complete - Should authenticate school'),
+        ('School complete', 'School complete - School authentication complete'),
     )
     WITHDRAWN_CHOICES = (
         ('general', 'General Member'),
@@ -130,7 +134,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=200, blank=True)
     nickname = models.CharField(max_length=200, blank=True)
     introducing = models.CharField(max_length=255, blank=True)
-    school_auth_status = models.CharField(max_length=80, choices=SCHOOL_AUTH_CHOICES, default = 'N') #choice 필요
+    auth_status = models.CharField(max_length=80, choices=AUTH_STATUS, default = 'Registered') #choice 필요
     registration_date = models.DateField(auto_now_add=True)
     mbti = models.CharField(max_length=255, blank=True)
     interest_list = models.CharField(max_length=255, blank=True)
