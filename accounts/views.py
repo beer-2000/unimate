@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, generics, status
 from accounts.serializers import *
 from accounts.models import *
+from accounts.validation import *
 
 from knox.models import AuthToken
 
@@ -22,9 +23,12 @@ class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
     
     def post(self, request, *args, **kwargs):
-        if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
-            body = {"message": "short field"}
-            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
+        #     body = {"message": "short field"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        password = request.data["password"]
+        validate_password(password)
+        
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
