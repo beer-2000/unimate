@@ -123,7 +123,7 @@ class Profile(models.Model):
         ('general', 'General Member'),
         ('withdrawal', 'Withdrawal member'),
     )
-    
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=80, blank=True, null=True)
     school_email = models.EmailField(max_length=254, blank=True)
