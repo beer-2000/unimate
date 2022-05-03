@@ -23,15 +23,17 @@ class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
     
     def post(self, request, *args, **kwargs):
+
         # if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
         #     body = {"message": "short field"}
         #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
         password = request.data["password"]
         validate_password(password)
-        
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # 이미 is_vaild 메서드에서 중복 검사를 함
+        # if User.objects.filter(email=serializer["email"].value):
+        #         return Response({"message": "Duplicated email"}, status=status.HTTP_400_BAD_REQUEST)
         user = serializer.save()
         return Response(
             {
@@ -41,6 +43,48 @@ class RegistrationAPI(generics.GenericAPIView):
                 "token": AuthToken.objects.create(user)[1],
             }
         )
+
+#ID 유효성 확인
+class IDDuplicateApI(generics.GenericAPIView):
+    serializer_class = IDSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if (len(serializer["username"].value) < 4) or (len(serializer["username"].value) > 14):
+            body = {"message": "Username must be not less than 4 characters but not more than 14 characters"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        if (' ' in serializer["username"].value):
+            body = {"message": "Username can not contain spaces"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(username=serializer["username"].value):
+            return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
+
+
+#닉네임 중복 확인
+class NicknameDuplicateApI(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = NicknameSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        print(serializer["nickname"].value[0])
+        print(serializer["nickname"].value[-1])
+        if (len(serializer["nickname"].value) < 2) or (len(serializer["nickname"].value) > 10):
+            body = {"message": "Nickname must be not less than 2 characters but not more than 10 characters"}
+            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # 공백으로 시작할 시, 자동으로 제거되어 등록됨
+        # if (serializer["nickname"].value[0]) == ' ' or (serializer["nickname"].value[-1] == ' '):
+        #     body = {"message": "Nickname can not start or end with a space"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        if Profile.objects.filter(nickname=serializer["nickname"].value):
+            return Response({"message": "Duplicated nickname"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"message": "Available nickname"}, status=status.HTTP_200_OK)
+
 
 #기존 로그인
 class LoginAPI(generics.GenericAPIView):
@@ -110,17 +154,14 @@ class ProfileRegisterAPI(APIView):
 
     def post(self, request, *args, **kwargs):
         profile = Profile.objects.get(id=request.user.id)
-        profile_serializer = ProfileRegisterSerializer(profile, request.data)
-        print(profile_serializer)
-        print()        
-        print(request.data)
+        data = request.data
+        data["auth_status"] = "Profile complete"
+        profile_serializer = ProfileRegisterSerializer(profile, data)
         if profile_serializer.is_valid():
             profile_serializer.save()
             return Response(profile_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        
 
 
 class WithdrawAPI(APIView):
@@ -244,11 +285,15 @@ class MajorView(APIView):
 class MajorOfUnivView(APIView):
     def get(self, request, *args, **kwargs):
         university = University.objects.get(pk=kwargs['university_id'])
-        print(type(university))
         # university에 속한 college 불러오기
         colleges = College.objects.filter(university=university)
+        print(colleges)
+        print(colleges[0])
+        print(colleges[0].id)
         # colleges에 속한 major 불러와서 정렬하기
         major = Major.objects.filter(college__in=colleges).order_by('major')
+        # major = Major.objects.filter(college__in=[1]).order_by('major')
+        print(major)
         serializer = MajorSerializer(major, many=True)
         return Response(serializer.data)
 
@@ -263,3 +308,17 @@ class MajorDetailView(APIView):
         serializer = MajorDetailSerializer(data=major_data)
         if serializer.is_valid():
             return Response(serializer.data)
+
+
+# 내정보 들어갈 때 프로필 등록 여부 체크
+class ProfileCheckView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)    
+    
+    def get(self, request):
+        profile = Profile.objects.get(id=request.id)
+        if profile.auth_status == "Registered":
+            return Response({"message": "Should authenticate phone"}, status=status.HTTP_400_BAD_REQUEST)
+        elif profile.auth_status == "Phone complete":
+            return Response({"message": "Should enter profile"}, status=status.HTTP_400_BAD_REQUEST)            
+        else:
+            return Response({"message": "Profile status OK"}, status=status.HTTP_200_OK)

@@ -80,7 +80,7 @@ class MeetExitAPI(APIView):
 #약속 내역 - room_id == id 인 방에 종속된 약속 list
 class MeetListAPI(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    def get(self, requets, id, format=None):
+    def get(self, request, id, format=None):
         meet = Meet.objects.filter(room_id=id)
         meet = Meet.objects.filter(room_id=id).order_by('-created_at')
         serializer = MeetSerializer(meet, many=True)
