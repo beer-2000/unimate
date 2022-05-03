@@ -64,12 +64,15 @@ class NicknameDuplicateApI(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        print(serializer["nickname"].value[0])
+        print(serializer["nickname"].value[-1])
         if (len(serializer["nickname"].value) < 2) or (len(serializer["nickname"].value) > 10):
             body = {"message": "Nickname must be not less than 2 characters but not more than 10 characters"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
-        if (serializer["nickname"].value[0]) == ' ' or (serializer["nickname"].value[-1] == ' '):
-            body = {"message": "Nickname can not start or end with a space"}
-            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # 공백으로 시작할 시, 자동으로 제거되어 등록됨
+        # if (serializer["nickname"].value[0]) == ' ' or (serializer["nickname"].value[-1] == ' '):
+        #     body = {"message": "Nickname can not start or end with a space"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
         if Profile.objects.filter(nickname=serializer["nickname"].value):
             return Response({"message": "Duplicated nickname"}, status=status.HTTP_400_BAD_REQUEST)
         else:
