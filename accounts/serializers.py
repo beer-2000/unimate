@@ -92,6 +92,11 @@ class IDSerializer(serializers.Serializer):
 class NicknameSerializer(serializers.Serializer):
     nickname = serializers.CharField()
 
+# 비밀번호 유효성 체크
+class PWSerializer(serializers.Serializer):
+    pw1 = serializers.CharField()
+    pw2 = serializers.CharField()
+
 
 # 로그인
 class LoginUserSerializer(serializers.Serializer):
