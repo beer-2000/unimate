@@ -81,7 +81,8 @@ class UserManager(BaseUserManager):
                     Q(major='컴퓨터공학부')
                 ),
                 password=password,
-                agree=True,
+                use_agree = True,
+                information_agree = True,
             )
             user.is_superuser = True
             user.is_staff = True

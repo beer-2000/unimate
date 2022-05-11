@@ -8,6 +8,7 @@ from accounts.models import *
 from accounts.validation import *
 
 from knox.models import AuthToken
+import re
 
 # Create your views here.
 
@@ -51,12 +52,13 @@ class IDDuplicateApI(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if (len(serializer["username"].value) < 4) or (len(serializer["username"].value) > 14):
-            body = {"message": "Username must be not less than 4 characters but not more than 14 characters"}
-            return Response(body, status=status.HTTP_400_BAD_REQUEST)
-        if (' ' in serializer["username"].value):
-            body = {"message": "Username can not contain spaces"}
-            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # if (len(serializer["username"].value) < 4) or (len(serializer["username"].value) > 14):
+        #     body = {"message": "Username must be not less than 4 characters but not more than 14 characters"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # if (' ' in serializer["username"].value):
+        #     body = {"message": "Username can not contain spaces"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        validate_username(serializer["username"].value)
         if User.objects.filter(username=serializer["username"].value):
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
         else:
