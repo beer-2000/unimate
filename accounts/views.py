@@ -66,10 +66,15 @@ class IDDuplicateApI(generics.GenericAPIView):
         # 수정
         user_valid = serializer["username"].value
         user_valid = user_valid.lower()
+        # print(validate_username(user_valid))
         if User.objects.filter(username=user_valid):
+            print(0)
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            validate_username(user_valid)
+        elif (validate_username(user_valid) == False) :
+            print(1)
+            return Response({"message": "INVALID_USERNAME"}, status=status.HTTP_400_BAD_REQUEST)
+        else:    
+            print(2)        
             return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
 
 # 비밀번호 유효성 확인
@@ -81,8 +86,12 @@ class PWValidateApI(generics.GenericAPIView):
         pw1 = request.data["pw1"]
         pw2 = request.data["pw2"]
         # try:
-        validate_password(pw1, pw2)
-        return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
+        if (validate_password(pw1, pw2) == 'INVALID_PASSWORD'):
+            return Response({"message": "INVALID_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
+        elif (validate_password(pw1, pw2) == 'INCORRECT_PASSWORD'):
+            return Response({"message": "INCORRECT_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
         # except ValidationError:
         #     body = {"message": "INVALID_PASSWORD"}
         #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
