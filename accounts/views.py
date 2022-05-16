@@ -66,7 +66,7 @@ class IDDuplicateApI(generics.GenericAPIView):
         # 수정
         user_valid = serializer["username"].value
         user_valid = user_valid.lower()
-        if User.objects.filter(user_valid):
+        if User.objects.filter(username=user_valid):
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             validate_username(user_valid)
