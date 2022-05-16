@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 
 def validate_username(value):
-    username_regex = re.compile("^(?=.*[A-Za-z])(?=.*\d){4,14}$", re.I)
+    username_regex = re.compile("^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{4,14}")
     if not username_regex.match(value):
         raise ValidationError('INVALID_USERNAME')
 

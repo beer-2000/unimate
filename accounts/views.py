@@ -57,10 +57,19 @@ class IDDuplicateApI(generics.GenericAPIView):
         # if (' ' in serializer["username"].value):
         #     body = {"message": "Username can not contain spaces"}
         #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
-        validate_username(serializer["username"].value)
-        if User.objects.filter(username=serializer["username"].value):
+        # validate_username(serializer["username"].value)
+        # if User.objects.filter(username=serializer["username"].value):
+        #     return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
+        # else:
+        #     return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
+
+        # 수정
+        user_valid = serializer["username"].value
+        user_valid = user_valid.lower()
+        if User.objects.filter(user_valid):
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
         else:
+            validate_username(user_valid)
             return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
 
 # 비밀번호 유효성 확인
@@ -71,12 +80,12 @@ class PWValidateApI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         pw1 = request.data["pw1"]
         pw2 = request.data["pw2"]
-        try:
-            validate_password(pw1, pw2)
-            return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
-        except ValidationError:
-            body = {"message": "INVALID_PASSWORD"}
-            return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        validate_password(pw1, pw2)
+        return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
+        # except ValidationError:
+        #     body = {"message": "INVALID_PASSWORD"}
+        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
 
 #닉네임 중복 확인
 class NicknameDuplicateApI(generics.GenericAPIView):
