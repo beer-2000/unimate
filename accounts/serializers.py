@@ -54,13 +54,14 @@ class MajorDetailSerializer(serializers.Serializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "password", "email", "university", "college", "major", "agree")
+        fields = ("id", "username", "password", "email", "university", "college", "major", "use_agree", "information_agree",)
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(
             validated_data["username"], validated_data["email"], validated_data["university"],
-            validated_data["college"], validated_data["major"], validated_data["agree"], validated_data["password"],
+            validated_data["college"], validated_data["major"], validated_data["use_agree"],
+            validated_data["information_agree"], validated_data["password"],
         )
         return user
 
@@ -78,7 +79,8 @@ class UserSerializer(serializers.ModelSerializer):
         represent['university'] = instance.university.university
         represent['college'] = instance.college.college
         represent['major'] = instance.major.major
-        represent['agree'] = instance.agree
+        represent['use_agree'] = instance.use_agree
+        represent['information_agree'] = instance.information_agree
         return represent
 
 

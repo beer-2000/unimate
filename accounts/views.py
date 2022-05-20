@@ -50,6 +50,12 @@ class LoginAPI(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
+        # obj = AuthToken.objects.get(user=user)
+        # print(obj)
+        # print(dir(obj))
+        # token_key = obj.token_key
+        # print(token_key)
+        # print(token_key)
         AuthToken.objects.filter(user=user).delete()
         return Response(
             {

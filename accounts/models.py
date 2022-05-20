@@ -46,7 +46,7 @@ class Major(models.Model):
 
 # user 커스터마이징
 class UserManager(BaseUserManager):
-    def create_user(self, username, email, university, college, major, agree, password=None):
+    def create_user(self, username, email, university, college, major, use_agree, information_agree, password=None):
         if not username:
             raise ValueError('User must have an username')
         
@@ -56,7 +56,8 @@ class UserManager(BaseUserManager):
             university = university,
             college = college,
             major = major,
-            agree = agree
+            use_agree = use_agree,
+            information_agree = information_agree,
         )
 
         user.set_password(password)
@@ -80,7 +81,8 @@ class UserManager(BaseUserManager):
                     Q(major='컴퓨터공학부')
                 ),
                 password=password,
-                agree=True,
+                use_agree = True,
+                information_agree = True,
             )
             user.is_superuser = True
             user.is_staff = True
@@ -93,7 +95,8 @@ class User(AbstractUser):
     university = models.ForeignKey(University, on_delete=models.CASCADE)
     college = models.ForeignKey(College, on_delete=models.CASCADE)
     major = models.ForeignKey(Major, on_delete=models.CASCADE)
-    agree = models.BooleanField(default=False)
+    use_agree = models.BooleanField(default=False)
+    information_agree = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     objects = UserManager()
