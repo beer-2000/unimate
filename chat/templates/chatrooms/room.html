@@ -44,9 +44,16 @@
             const data = JSON.parse(e.data);
             const messageElement = document.createElement('div')
             messageElement.innerText = data.message
-            messageElement.className = 'message'
-            chatLog.appendChild(messageElement)
+            
+            //sender와 receiver는 각각 보낸 사람, 현재 유저의 user_id 값
+            //consumers.py chat_message의 self.send 에서 넘어옴
+            if (data.sender == data.receiver) {
+                messageElement.classList.add('message', 'sender')
+            } else {
+                messageElement.classList.add('message', 'receiver')
+            }
 
+            chatLog.appendChild(messageElement)
             if (document.querySelector('#emptyText')) {
                 document.querySelector('#emptyText').remove()
             }

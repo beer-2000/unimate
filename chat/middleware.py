@@ -9,6 +9,8 @@ from knox.settings import CONSTANTS
 @database_sync_to_async
 def get_user(headers):
     try:
+        # log 확인
+        print("get_user")
         # header에서 Token 받아오기
         token_name, token_key = headers[b'authorization'].decode().split()
         # Token이 존재한다면 AuthToken에서 user 반환하기
