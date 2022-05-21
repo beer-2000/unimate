@@ -1,29 +1,21 @@
 from django.shortcuts import render
+
+# Create your views here.
+from django.shortcuts import render
 from django.views import View
-from chat.models import Chat
-from rooms.models import Room as ChatRoom
-# from django.contrib.auth.mixins import LoginRequiredMixin
+from rest_framework import permissions
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# def home(request):
-#     return render(request, 'home.html', {})
+# Create your views here.
 
-# def room(request, room_name):
-#     return render(request, 'room.html', {
-#         'room_name': room_name
-#     })
 class Index(View):
-	def get(self, request):
-		return render(request, 'chatrooms/index.html')
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return render(request, 'chatrooms/index.html')
 
 class Room(View):
-    def get(self, request, room_name):
-        room = ChatRoom.objects.filter(name=room_name).first()
-        chats = []
+    permission_classes = (permissions.IsAuthenticated,)
 
-        if room:
-            chats = Chat.objects.filter(room=room)
-        else:
-            room = ChatRoom(name=room_name)
-            room.save()
-            
-        return render(request, 'chatrooms/room.html', {'room_name' : room_name, 'chats' : chats})
+    def get(self, request, room_name):
+        return render(request, 'chatrooms/room.html', {'room_name': room_name})

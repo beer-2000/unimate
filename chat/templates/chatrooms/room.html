@@ -1,4 +1,5 @@
 {% load static %}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -10,28 +11,74 @@
     <a class="leaveButton" href="{% url 'index' %}">Leave Room</a>
 
     <div class="container">
-        <div id="chat-log">
-            {% for chat in chats.all %}
-                {% if chat.user.id == request.user.id %}
-                    <div class="message sender">
-                        {{ chat.content }}
-                    </div>
-                {% else %}
-                    <div class="message receiver">
-                        {{ chat.content }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
+        <div class="message" id="chat-log"></div>
     </div>
 
     <div class="container">
-        <input class="textInput" id="chat-message-input" type="text" placeholder="Say something!"><br>
+        <input class="textInput" id="chat-message-input" type="text" size="100"><br>
         <input class="button" id="chat-message-submit" type="button" value="Send">
         {{ room_name|json_script:"room-name" }}
     </div>
+    <!-- <script src="{% static 'room.js' %}"> -->
+    <script type="text/javascript">
+        const chatLog = document.querySelector('#chat-log')
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
-    {{ request.user.id|json_script:"user_id" }}
-    <script src="{% static 'room.js' %}"></script>
+        if (!chatLog.hasChildNodes()) {
+            const emptyText = document.createElement('h3')
+            emptyText.id = 'emptyText'
+            emptyText.innerText = 'No Messages'
+            emptyText.className = 'emptyText'
+            chatLog.appendChild(emptyText)
+        }
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const messageElement = document.createElement('div')
+            messageElement.innerText = data.message
+            
+            //sender와 receiver는 각각 보낸 사람, 현재 유저의 user_id 값
+            //consumers.py chat_message의 self.send 에서 넘어옴
+            if (data.sender == data.receiver) {
+                messageElement.classList.add('message', 'sender')
+            } else {
+                messageElement.classList.add('message', 'receiver')
+            }
+
+            chatLog.appendChild(messageElement)
+            if (document.querySelector('#emptyText')) {
+                document.querySelector('#emptyText').remove()
+            }
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+
+    </script>
 </body>
 </html>
