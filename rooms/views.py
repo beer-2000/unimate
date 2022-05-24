@@ -16,7 +16,7 @@ class RoomCreateAPI(APIView):
     serializer_class = RoomSerializer
     
     def post(self, request):
-        profile = Profile.objects.get(id=request.id)
+        profile = Profile.objects.get(id=request.user.id)
         if profile.auth_status == 'Profile complete':
             body = {"message": "School authentication is necessary"}
             return Response(body, status=status.HTTP_400_BAD_REQUEST)
