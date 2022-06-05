@@ -6,7 +6,6 @@ from django.dispatch import receiver
 
 
 # Create your models here.
-#  대학교 정보
 class University(models.Model):
     university = models.CharField(max_length=32, blank=True)
 
@@ -46,9 +45,10 @@ class Interest(models.Model):
 
     class Meta:
         db_table = 'interest'
-    
+
     def __str__(self):   
         return self.interest
+
 ### null=True 와 blank=True 의 차이점
 # null은 null로 저장, blank는 입력 폼에서 빈 칸으로 입력하고 DB에는 '' 으로 저장됨.
 # 따라서, CharField의 경우 null=True 만으로는 빈칸 입력이 불가능하여 blank=True로 처리함.
@@ -148,7 +148,7 @@ class Profile(models.Model):
     auth_status = models.CharField(max_length=80, choices=AUTH_STATUS, default = 'Registered') #choice 필요
     registration_date = models.DateField(auto_now_add=True)
     mbti = models.CharField(max_length=255, blank=True)
-    # interest_list = models.CharField(max_length=255, blank=True, choices=INTEREST_CHOICES)
+    # interest_list = models.CharField(max_length=255, blank=True)
     interest_list = models.ForeignKey(Interest, on_delete=models.CASCADE, null=True, blank=True)
     withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요    
 
