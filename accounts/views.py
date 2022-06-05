@@ -187,15 +187,6 @@ class ProfileDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProfileDetailSerializer
 
 
-class InterestView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-    
-    def get(self, request, *args, **kwargs):
-        interest = Interest.objects.all().order_by('id')
-        serializer = InterestSerializer(interest, many=True)
-        return Response(serializer.data)
-
-
 class ProfileRegisterAPI(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = ProfileRegisterSerializer
