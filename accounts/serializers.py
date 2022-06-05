@@ -129,6 +129,11 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("email is already validated")
         return value
 
+class InterestSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Interest
+        fields = ['id', 'interest']
 
 # class ProfileRegisterSerializer(serializers.ModelSerializer):
 #     class Meta:
