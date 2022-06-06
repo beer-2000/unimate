@@ -148,8 +148,8 @@ class Profile(models.Model):
     auth_status = models.CharField(max_length=80, choices=AUTH_STATUS, default = 'Registered') #choice 필요
     registration_date = models.DateField(auto_now_add=True)
     mbti = models.CharField(max_length=255, blank=True)
-    # interest_list = models.CharField(max_length=255, blank=True)
-    interest_list = models.ForeignKey(Interest, on_delete=models.CASCADE, null=True, blank=True)
+    interest_list = models.CharField(max_length=255, blank=True)
+    # interest_list = models.ForeignKey(Interest, on_delete=models.CASCADE, null=True, blank=True)
     withdrawn_status = models.CharField(max_length=80, choices=WITHDRAWN_CHOICES, default = 'general') #choice 필요    
 
     class Meta: #메타 클래스를 이용하여 테이블명 지정
