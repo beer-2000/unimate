@@ -6,7 +6,7 @@ class CheckRequest:
         self.college = data["college"]
         self.major = data["major"]
 
-    def univColMajor(self):
+    def univ_col_major(self):
         if(
             (type(self.university) is int) &
             (type(self.college) is int) &
