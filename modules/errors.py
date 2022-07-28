@@ -13,11 +13,4 @@ class CustomError(APIException):
         if code is None:
             code = self.default_code
 
-        # For validation failures, we may collect many errors together,
-        # so the details should always be coerced to a list if not already.
-        # if isinstance(detail, tuple):
-        #     detail = list(detail)
-        # elif not isinstance(detail, dict) and not isinstance(detail, list):
-        #     detail = [detail]
-
         self.detail = _get_error_details(detail, code)

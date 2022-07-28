@@ -72,7 +72,7 @@ class IDDuplicateApI(generics.GenericAPIView):
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
         elif (validate_username(user_valid) == False) :
             print(1)
-            return Response({"message": "INVALID_USERNAME"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Invalid ID"}, status=status.HTTP_400_BAD_REQUEST)
         else:    
             print(2)        
             return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
@@ -85,16 +85,8 @@ class PWValidateApI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         pw1 = request.data["pw1"]
         pw2 = request.data["pw2"]
-        # try:
-        if (validate_password(pw1, pw2) == 'INVALID_PASSWORD'):
-            return Response({"message": "INVALID_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
-        elif (validate_password(pw1, pw2) == 'INCORRECT_PASSWORD'):
-            return Response({"message": "INCORRECT_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
-        # except ValidationError:
-        #     body = {"message": "INVALID_PASSWORD"}
-        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        validate_password(pw1, pw2)
+        return Response({"message": "Valid password"}, status=status.HTTP_200_OK)
 
 #닉네임 중복 확인
 class NicknameDuplicateApI(generics.GenericAPIView):
