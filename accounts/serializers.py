@@ -4,6 +4,9 @@ from accounts.models import *
 from django.contrib.auth import authenticate, password_validation
 from django.utils.translation import gettext_lazy as _
 
+from modules.errors import CustomError
+from rest_framework import status
+
 
 
 # 대학교
@@ -187,9 +190,9 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, data):
         if data['new_password'] != data['new_password2']:
-            raise serializers.ValidationError({'new_password2': _("Passwords didn't match")})
+            raise CustomError({"message": "Passwords didn't match"}, status.HTTP_400_BAD_REQUEST)
         if data['new_password'] == data['old_password']:
-            raise serializers.ValidationError({'new_password': _("Same password as the previous one")})
+            raise CustomError({"message": "Same password as the previous one"}, status.HTTP_400_BAD_REQUEST)
         password_validation.validate_password(data['new_password'], self.context['request'].user)
         return data
     

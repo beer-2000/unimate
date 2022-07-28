@@ -138,4 +138,5 @@ eb-package.zip
 # static/
 
 # personal_setting
+unimate/settings.py
 unimate/my_settings.py
