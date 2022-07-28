@@ -1,0 +1,15 @@
+
+
+class CheckRequest:
+    def __init__(self, data):
+        self.university = data["university"]
+        self.college = data["college"]
+        self.major = data["major"]
+
+    def univ_col_major(self):
+        if(
+            (type(self.university) is int) &
+            (type(self.college) is int) &
+            (type(self.major) is int)) :
+            return True
+        return False

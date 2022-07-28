@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -5,10 +6,12 @@ from rest_framework.views import APIView
 from rest_framework import permissions, generics, status
 from accounts.serializers import *
 from accounts.models import *
-from accounts.validation import *
+from accounts.modules.validation import *
 
 from knox.models import AuthToken
 import re
+
+from accounts.modules.checkRequest import CheckRequest
 
 # Create your views here.
 
@@ -24,25 +27,32 @@ class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
     
     def post(self, request, *args, **kwargs):
+        try:
+            # if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
+            #     body = {"message": "short field"}
+            #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        # if len(request.data["username"]) < 4 or len(request.data["password"]) < 4:
-        #     body = {"message": "short field"}
-        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+            # 이미 is_vaild 메서드에서 중복 검사를 함
+            # if User.objects.filter(email=serializer["email"].value):
+            #         return Response({"message": "Duplicated email"}, status=status.HTTP_400_BAD_REQUEST)
+            user = serializer.save()
+            return Response(
+                {
+                    "user": UserSerializer(
+                        user, context=self.get_serializer_context()
+                    ).data,
+                    "token": AuthToken.objects.create(user)[1],
+                }
+            )
+        
+        except Exception as e:
+            check = CheckRequest(request.data)
+            if check.univColMajor() == False :
+                raise CustomError({"message": "University, College, Major are must number type"})
+            raise CustomError({"message": "Duplicated email"})
 
-        # 이미 is_vaild 메서드에서 중복 검사를 함
-        # if User.objects.filter(email=serializer["email"].value):
-        #         return Response({"message": "Duplicated email"}, status=status.HTTP_400_BAD_REQUEST)
-        user = serializer.save()
-        return Response(
-            {
-                "user": UserSerializer(
-                    user, context=self.get_serializer_context()
-                ).data,
-                "token": AuthToken.objects.create(user)[1],
-            }
-        )
 
 #ID 유효성 확인
 class IDDuplicateApI(generics.GenericAPIView):
@@ -72,7 +82,7 @@ class IDDuplicateApI(generics.GenericAPIView):
             return Response({"message": "Duplicated ID"}, status=status.HTTP_400_BAD_REQUEST)
         elif (validate_username(user_valid) == False) :
             print(1)
-            return Response({"message": "INVALID_USERNAME"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Invalid ID"}, status=status.HTTP_400_BAD_REQUEST)
         else:    
             print(2)        
             return Response({"message": "Available ID"}, status=status.HTTP_200_OK)
@@ -85,16 +95,8 @@ class PWValidateApI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         pw1 = request.data["pw1"]
         pw2 = request.data["pw2"]
-        # try:
-        if (validate_password(pw1, pw2) == 'INVALID_PASSWORD'):
-            return Response({"message": "INVALID_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
-        elif (validate_password(pw1, pw2) == 'INCORRECT_PASSWORD'):
-            return Response({"message": "INCORRECT_PASSWORD"}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"message": "VALID_PASSWORD"}, status=status.HTTP_200_OK)
-        # except ValidationError:
-        #     body = {"message": "INVALID_PASSWORD"}
-        #     return Response(body, status=status.HTTP_400_BAD_REQUEST)
+        validate_password(pw1, pw2)
+        return Response({"message": "Valid password"}, status=status.HTTP_200_OK)
 
 #닉네임 중복 확인
 class NicknameDuplicateApI(generics.GenericAPIView):
