@@ -21,6 +21,8 @@ urlpatterns = [
     path("profile/<int:user_id>/", ProfileDetailAPI.as_view()),
     path("withdraw/", WithdrawAPI.as_view(), name='withdraw'),
     path("profile_check/", ProfileCheckView.as_view()),
+    # 관심사
+    path("interest/", InterestView.as_view()),
     # 학교
     path('university/', UniversityView.as_view()),
     path('college/<int:university_id>/', CollegeView.as_view()),

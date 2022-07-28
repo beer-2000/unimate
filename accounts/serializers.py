@@ -4,6 +4,9 @@ from accounts.models import *
 from django.contrib.auth import authenticate, password_validation
 from django.utils.translation import gettext_lazy as _
 
+from modules.errors import CustomError
+from rest_framework import status
+
 
 
 # 대학교
@@ -107,8 +110,7 @@ class LoginUserSerializer(serializers.Serializer):
         user = authenticate(**data)
         if user and user.is_active:
             return user
-        raise serializers.ValidationError(
-            "Unable to log in with provided credentials.")
+        raise CustomError({"message": "Incorrect information"})
 
 
 # class ProfileSerializer(serializers.ModelSerializer):
@@ -116,7 +118,12 @@ class LoginUserSerializer(serializers.Serializer):
 #         model = Profile
 #         fields = ("nickname", "introducing",)
 
+class InterestSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = Interest
+        fields = ['id', 'interest']
+        
 class ProfileDetailSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     
@@ -182,9 +189,9 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, data):
         if data['new_password'] != data['new_password2']:
-            raise serializers.ValidationError({'new_password2': _("Passwords didn't match")})
+            raise CustomError({"message": "Passwords didn't match"}, status.HTTP_400_BAD_REQUEST)
         if data['new_password'] == data['old_password']:
-            raise serializers.ValidationError({'new_password': _("Same password as the previous one")})
+            raise CustomError({"message": "Same password as the previous one"}, status.HTTP_400_BAD_REQUEST)
         password_validation.validate_password(data['new_password'], self.context['request'].user)
         return data
     
